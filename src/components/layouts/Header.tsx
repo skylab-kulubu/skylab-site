@@ -42,12 +42,15 @@ export default function Header() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
             setActiveSection(entry.target.id);
           }
         });
       },
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0 }
+      {
+        rootMargin: "-15% 0px -70% 0px",
+        threshold: [0, 0.1],
+      }
     );
 
     navLinks.forEach((link) => {

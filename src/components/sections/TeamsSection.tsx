@@ -56,7 +56,7 @@ export default function TeamsSection() {
     <section
       ref={sectionRef}
       id="ekipler"
-      className="scroll-mt-28 relative py-12 md:py-16"
+      className="scroll-mt-32 relative py-12 md:py-16"
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -203,6 +203,7 @@ export default function TeamsSection() {
                     alt={team.name}
                     loading="lazy"
                     fill
+                    sizes="64px"
                     className={cn(
                       "object-contain transition-all duration-500 ease-out",
                       showColor ? "opacity-0" : "opacity-100"
@@ -215,6 +216,7 @@ export default function TeamsSection() {
                     alt={team.name}
                     loading="lazy"
                     fill
+                    sizes="64px"
                     className={cn(
                       "object-contain transition-all duration-500 ease-out",
                       showColor ? "opacity-100" : "opacity-0"
@@ -324,6 +326,7 @@ export default function TeamsSection() {
                     alt={selectedTeam.name}
                     loading="lazy"
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-contain"
                     style={{
                       filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
@@ -438,35 +441,26 @@ export default function TeamsSection() {
         </div>
         <div
           className={cn(
-            "pt-6 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4"
+            "pt-12 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
           style={{ transitionDelay: "600ms" }}
         >
           <div
             className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: showAnimations ? "5rem" : "0",
+              width: isVisible ? "5rem" : "0",
               transitionDelay: "700ms",
             }}
           />
           <div
-            className={cn(
-              "h-1.5 w-1.5 rounded-full bg-purple-400/60 transition-all duration-500",
-              showAnimations ? "animate-pulse scale-100" : "scale-0"
-            )}
-            style={{
-              animationDuration: "2s",
-              boxShadow: "0 0 8px rgba(168, 85, 247, 0.6)",
-              transitionDelay: "750ms",
-            }}
+            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+            style={{ animationDuration: "2s" }}
           />
           <div
             className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: showAnimations ? "5rem" : "0",
+              width: isVisible ? "5rem" : "0",
               transitionDelay: "700ms",
             }}
           />

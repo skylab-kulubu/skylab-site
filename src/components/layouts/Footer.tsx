@@ -57,7 +57,7 @@ export default function Footer() {
       { href: "/", label: "Ana Sayfa", sectionId: "home" },
       { href: "/#hakkimizda", label: "Hakkımızda", sectionId: "hakkimizda" },
       { href: "/#ekipler", label: "Ekiplerimiz", sectionId: "ekipler" },
-      { href: "/#kurul", label: "Yönetim Kurulu", sectionId: "kurul" },
+      { href: "/#kurul", label: "Kurullarımız", sectionId: "kurul" },
     ],
     explore: [
       { href: "/#etkinlikler", label: "Etkinlikler", sectionId: "etkinlikler" },
@@ -98,7 +98,7 @@ export default function Footer() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 py-16">
+      <div className="relative max-w-7xl mx-auto py-16 px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-slate-300">
           <div
             className={cn(

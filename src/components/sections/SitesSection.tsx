@@ -39,6 +39,7 @@ const categoryColors: Record<string, RGB> = {
 };
 
 export default function SitesSection() {
+  const [isMounted, setIsMounted] = useState(false);
   const [siteColors, setSiteColors] = useState<Record<string, RGB>>({});
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
@@ -49,7 +50,11 @@ export default function SitesSection() {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
 
     const loadColors = async () => {
       const newColors: Record<string, RGB> = {};
@@ -73,7 +78,7 @@ export default function SitesSection() {
         })
       );
 
-      if (isMounted) {
+      if (isActive) {
         setSiteColors(newColors);
       }
     };
@@ -81,21 +86,26 @@ export default function SitesSection() {
     loadColors();
 
     return () => {
-      isMounted = false;
+      isActive = false;
     };
   }, [sortedSites]);
+
+  const showAnimations = isMounted && isVisible;
 
   return (
     <section
       ref={sectionRef}
       id="siteler"
-      className="scroll-mt-28 relative py-12 md:py-16 overflow-hidden"
+      className="scroll-mt-32 relative py-12 md:py-16 overflow-hidden"
+      suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <h2
           className={cn(
             "text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+            showAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-12"
           )}
         >
           <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
@@ -120,18 +130,18 @@ export default function SitesSection() {
                 key={site.id}
                 className={cn(
                   "h-full transition-all duration-1000 ease-out",
-                  isVisible
+                  showAnimations
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
                 )}
-                style={{ transitionDelay: `${index * 50}ms` }}
+                style={{ transitionDelay: `${index * 80}ms` }}
               >
                 <a
                   href={site.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
-                    "group relative flex flex-col justify-center rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] z-10 hover:z-20 h-full",
+                    "group relative flex flex-col justify-center rounded-2xl overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02] z-10 hover:z-20 h-full",
                     "bg-white/3 backdrop-blur-xl border border-white/10 hover:border-[rgba(var(--c-rgb),0.5)]",
                     "shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)]",
                     "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(var(--c-rgb),0.3)]"
@@ -185,6 +195,7 @@ export default function SitesSection() {
                           alt={site.title}
                           loading="lazy"
                           fill
+                          sizes="(max-width: 768px) 64px, 80px"
                           className="object-contain p-2 transition-all duration-500 group-hover:brightness-110 group-hover:scale-110"
                         />
                       ) : (
@@ -237,15 +248,17 @@ export default function SitesSection() {
         <div
           className={cn(
             "pt-12 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            showAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-4"
           )}
-          style={{ transitionDelay: "600ms" }}
+          style={{ transitionDelay: "400ms" }}
         >
           <div
             className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: isVisible ? "5rem" : "0",
-              transitionDelay: "700ms",
+              width: showAnimations ? "5rem" : "0",
+              transitionDelay: "500ms",
             }}
           />
           <div
@@ -255,8 +268,8 @@ export default function SitesSection() {
           <div
             className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: isVisible ? "5rem" : "0",
-              transitionDelay: "700ms",
+              width: showAnimations ? "5rem" : "0",
+              transitionDelay: "500ms",
             }}
           />
         </div>

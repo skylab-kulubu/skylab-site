@@ -10,7 +10,7 @@ export default function IntroductionSection() {
     <section
       ref={sectionRef}
       id="hakkimizda"
-      className="scroll-mt-28 max-w-7xl py-12 md:py-16 overflow-hidden text-center space-y-6"
+      className="scroll-mt-32 max-w-7xl py-12 md:py-16 overflow-hidden text-center space-y-6"
     >
       <h2
         className={cn(

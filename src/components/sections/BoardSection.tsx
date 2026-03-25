@@ -15,6 +15,7 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 
 export default function BoardSection() {
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedBoard, setSelectedBoard] = useState<
     "management" | "supervision"
   >("management");
@@ -24,7 +25,11 @@ export default function BoardSection() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const { ref: sectionRef, isVisible } = useScrollReveal(0.2);
+  const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const currentMembers =
     selectedBoard === "management"
@@ -43,16 +48,16 @@ export default function BoardSection() {
     checkScroll();
     const ref = scrollRef.current;
     if (ref) {
-      ref.addEventListener("scroll", checkScroll);
-      window.addEventListener("resize", checkScroll);
-      setTimeout(checkScroll, 200);
+      ref.addEventListener("scroll", checkScroll, { passive: true });
+      window.addEventListener("resize", checkScroll, { passive: true });
+      setTimeout(checkScroll, 300);
 
       return () => {
         ref.removeEventListener("scroll", checkScroll);
         window.removeEventListener("resize", checkScroll);
       };
     }
-  }, [selectedBoard, currentMembers]);
+  }, [selectedBoard, currentMembers, isVisible]);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -82,17 +87,22 @@ export default function BoardSection() {
     }, 200);
   };
 
+  const showAnimations = isMounted && isVisible;
+
   return (
     <section
       ref={sectionRef}
       id="kurul"
-      className="scroll-mt-28 relative py-12 md:py-16 overflow-hidden"
+      className="scroll-mt-32 relative py-12 md:py-16 overflow-hidden"
+      suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div
           className={cn(
             "transition-all duration-1000 ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+            showAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-12"
           )}
         >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16">
@@ -105,7 +115,9 @@ export default function BoardSection() {
         <div
           className={cn(
             "flex justify-center mb-4 transition-all duration-1000 ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+            showAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
           )}
           style={{ transitionDelay: "100ms" }}
         >
@@ -181,7 +193,9 @@ export default function BoardSection() {
         <div
           className={cn(
             "relative w-full transition-all duration-1000 ease-out mt-8",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            showAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-12"
           )}
           style={{ transitionDelay: "200ms" }}
         >
@@ -245,7 +259,7 @@ export default function BoardSection() {
                   key={member.id}
                   className={cn(
                     "relative shrink-0 w-70 md:w-[320px] transition-all ease-out",
-                    isVisible && !isTransitioning
+                    showAnimations && !isTransitioning
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-12"
                   )}
@@ -267,6 +281,7 @@ export default function BoardSection() {
                       loading="lazy"
                       alt={member.name}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
                       className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105 brightness-90"
                     />
 
@@ -317,42 +332,29 @@ export default function BoardSection() {
 
         <div
           className={cn(
-            "pt-8 flex items-center justify-center gap-2 transition-all ease-out",
-            isVisible && !isTransitioning
+            "flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
+            showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12"
+              : "opacity-0 translate-y-4"
           )}
-          style={{
-            transitionDuration: isTransitioning ? "150ms" : "1000ms",
-            transitionDelay: isTransitioning ? "0ms" : "500ms",
-          }}
+          style={{ transitionDelay: "600ms" }}
         >
           <div
-            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000 ease-out"
+            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: isVisible && !isTransitioning ? "5rem" : "0",
-              opacity: isVisible && !isTransitioning ? 1 : 0,
-              transitionDelay: isTransitioning ? "0ms" : "700ms",
+              width: showAnimations ? "5rem" : "0",
+              transitionDelay: "700ms",
             }}
           />
-
           <div
-            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse transition-all duration-500"
-            style={{
-              animationDuration: "2s",
-              boxShadow: "0 0 8px rgba(168, 85, 247, 0.6)",
-              transform:
-                isVisible && !isTransitioning ? "scale(1)" : "scale(0)",
-              transitionDelay: isTransitioning ? "0ms" : "600ms",
-            }}
+            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+            style={{ animationDuration: "2s" }}
           />
-
           <div
-            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000 ease-out"
+            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
             style={{
-              width: isVisible && !isTransitioning ? "5rem" : "0",
-              opacity: isVisible && !isTransitioning ? 1 : 0,
-              transitionDelay: isTransitioning ? "0ms" : "700ms",
+              width: showAnimations ? "5rem" : "0",
+              transitionDelay: "700ms",
             }}
           />
         </div>
