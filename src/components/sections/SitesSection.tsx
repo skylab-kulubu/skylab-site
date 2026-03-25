@@ -133,7 +133,8 @@ export default function SitesSection() {
                   className={cn(
                     "group relative flex flex-col justify-center rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] z-10 hover:z-20 h-full",
                     "bg-white/3 backdrop-blur-xl border border-white/10 hover:border-[rgba(var(--c-rgb),0.5)]",
-                    "shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.4),0_0_40px_rgba(var(--c-rgb),0.2)]"
+                    "shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)]",
+                    "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(var(--c-rgb),0.3)]"
                   )}
                   style={{
                     ["--c-rgb" as string]: rgbVars,
@@ -147,7 +148,6 @@ export default function SitesSection() {
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"
                     style={{
                       background: `linear-gradient(135deg, rgba(var(--c-rgb), 0.15) 0%, transparent 60%)`,
-                      boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.1)",
                     }}
                   />
 
@@ -215,7 +215,6 @@ export default function SitesSection() {
                           style={{ color: `rgba(var(--c-rgb), 0.5)` }}
                         />
                       </div>
-
                       <p className="text-sm md:text-base m-0 line-clamp-2 text-white/60 group-hover:text-white/95 transition-colors duration-300">
                         {site.description}
                       </p>
@@ -226,7 +225,7 @@ export default function SitesSection() {
                     className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-30"
                     style={{
                       background:
-                        "linear-gradient(90deg, transparent, rgba(var(--c-rgb), 0.8), transparent)",
+                        "linear-gradient(90deg, transparent, rgba(var(--c-rgb), 0.6), transparent)",
                     }}
                   />
                 </a>

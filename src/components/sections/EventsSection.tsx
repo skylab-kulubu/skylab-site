@@ -200,9 +200,10 @@ export default function EventsSection() {
                 <div
                   key={event.id}
                   className={cn(
-                    "group relative shrink-0 w-[320px] md:w-95 flex flex-col h-auto rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 z-10 hover:z-20",
-                    "bg-white/3 backdrop-blur-xl border border-white/10 hover:border-[rgba(var(--c-rgb),0.6)]",
-                    "shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.4),0_0_40px_rgba(var(--c-rgb),0.3)]"
+                    "group relative shrink-0 w-[320px] md:w-95 flex flex-col h-auto rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-3 hover:scale-[1.02] z-10 hover:z-20 cursor-pointer",
+                    "border border-white/5 hover:border-[rgba(var(--c-rgb),0.5)]",
+                    "shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)]",
+                    "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(var(--c-rgb),0.3)]"
                   )}
                   style={{
                     ["--c-rgb" as string]: rgbVars,
@@ -210,11 +211,12 @@ export default function EventsSection() {
                     background: `linear-gradient(135deg, rgba(var(--c-rgb), 0.1) 0%, rgba(10, 10, 30, 0.95) 100%)`,
                   }}
                 >
+                  <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"
                     style={{
                       background: `linear-gradient(135deg, rgba(var(--c-rgb), 0.15) 0%, transparent 60%)`,
-                      boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.1)",
                     }}
                   />
 
@@ -311,8 +313,6 @@ export default function EventsSection() {
                         "linear-gradient(90deg, transparent, rgba(var(--c-rgb), 0.8), transparent)",
                     }}
                   />
-
-                  <div className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 group-hover:translate-x-full z-20" />
                 </div>
               );
             })}
