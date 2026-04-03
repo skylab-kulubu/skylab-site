@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SkyLabLogo } from "@/components/ui/SkyLabLogo";
 import { Menu, X } from "lucide-react";
 
@@ -23,12 +23,16 @@ export default function Header() {
   const [activeSection, setActiveSection] = useState("home");
   const [mounted, setMounted] = useState(false);
 
+  const isProgrammaticScroll = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -39,28 +43,43 @@ export default function Header() {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      {
-        rootMargin: "-15% 0px -70% 0px",
-        threshold: [0, 0.1],
-      }
-    );
+    const handleScrollSpy = () => {
+      if (isProgrammaticScroll.current) return;
 
-    navLinks.forEach((link) => {
-      if (link.sectionId) {
-        const element = document.getElementById(link.sectionId);
-        if (element) observer.observe(element);
-      }
-    });
+      const triggerLine = 140;
 
-    return () => observer.disconnect();
+      const sectionElements = navLinks
+        .map((link) =>
+          link.sectionId ? document.getElementById(link.sectionId) : null
+        )
+        .filter((el): el is HTMLElement => el !== null);
+
+      if (sectionElements.length === 0) return;
+
+      let currentSection = "home";
+
+      for (const el of sectionElements) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= triggerLine) {
+          currentSection = el.id;
+        }
+      }
+
+      const isAtBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 10;
+
+      if (isAtBottom) {
+        currentSection = sectionElements[sectionElements.length - 1].id;
+      }
+
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener("scroll", handleScrollSpy, { passive: true });
+    handleScrollSpy();
+
+    return () => window.removeEventListener("scroll", handleScrollSpy);
   }, [pathname]);
 
   useEffect(() => {
@@ -79,14 +98,34 @@ export default function Header() {
     if (pathname === "/") {
       e.preventDefault();
 
-      const element = document.getElementById(link.sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      } else if (link.sectionId === "home") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
 
+      isProgrammaticScroll.current = true;
+      setActiveSection(link.sectionId);
       setIsMobileMenuOpen(false);
+
+      if (link.sectionId === "home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        const element = document.getElementById(link.sectionId);
+        if (element) {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition =
+            elementPosition + window.scrollY - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }
+
+      scrollTimeoutRef.current = setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 1000);
     } else {
       setIsMobileMenuOpen(false);
     }
@@ -113,8 +152,7 @@ export default function Header() {
           className="absolute inset-0 -z-20 transition-opacity duration-700 ease-in-out"
           style={{
             opacity: isScrolled ? 0 : 1,
-            background:
-              "linear-gradient(135deg, rgba(15, 23, 42, 0.4) 0%, rgba(10, 10, 30, 0.4) 100%)",
+            background: "transparent",
             backdropFilter: "blur(0px)",
             WebkitBackdropFilter: "blur(0px)",
           }}
@@ -124,7 +162,7 @@ export default function Header() {
           style={{
             opacity: isScrolled ? 1 : 0,
             background:
-              "linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 10, 30, 0.95) 100%)",
+              "linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(10, 10, 30, 0.8) 100%)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
             boxShadow:
@@ -136,7 +174,7 @@ export default function Header() {
           style={{
             background:
               "linear-gradient(to right, transparent, rgba(99, 102, 241, 0.5), transparent)",
-            opacity: isScrolled ? 1 : 0.3,
+            opacity: isScrolled ? 1 : 0,
             transition: "opacity 0.5s ease",
           }}
         />

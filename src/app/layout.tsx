@@ -23,9 +23,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning> 
       <body
         className={`${manrope.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
         <ScrollProgress/>
         <CursorGlow />

@@ -39,6 +39,15 @@ export const teams: Team[] = [
     category: 'ar-ge'
   },
   {
+    id: 'gdgoncampusytu',
+    name: 'GDG On Campus YTU',
+    slug: 'gdgoncampusytu',
+    logoWhite: '/img/teams/gdgbeyaz.svg',
+    logoColor: '/img/teams/gdgrenkli.svg',
+    description: 'Google teknolojileri ekosisteminde öğrencilerin teknik becerilerini geliştirmeyi ve güçlü bir topluluk bağı kurmayı amaçlayan ekibimiz. Düzenlediği workshoplar, hackathonlar ve teknik oturumlarla, yeni başlayanlardan deneyimli yazılımcılara kadar herkese projelerde yer alma ve liderlik etme fırsatı sunar.',
+    category: 'ar-ge'
+  },
+  {
     id: 'mobilab',
     name: 'MOBILAB',
     slug: 'mobilab',
@@ -74,7 +83,6 @@ export const teams: Team[] = [
     description: 'React, Next.js, Java ve .NET gibi modern teknolojilerle web uygulamaları geliştiren ekibimiz. Frontend ve backend süreçlerinde kulübün dijital ihtiyaçlarını karşılayan ölçeklenebilir projeler üretir.',
     category: 'ar-ge'
   },
-
   // sosyal
   {
     id: 'org',

@@ -199,29 +199,29 @@ export default function TeamsSection() {
 
                 <div className="relative w-full h-full z-10 flex items-center justify-center">
                   <Image
+                    key={`${team.id}-white`}
                     src={team.logoWhite}
-                    alt={team.name}
-                    loading="lazy"
+                    alt={`${team.name} white logo`}
+                    priority={true}
                     fill
                     sizes="64px"
                     className={cn(
                       "object-contain transition-all duration-500 ease-out",
-                      showColor ? "opacity-0" : "opacity-100"
+                      showColor ? "opacity-0 invisible" : "opacity-100 visible"
                     )}
-                    priority={false}
                   />
 
                   <Image
+                    key={`${team.id}-color`}
                     src={team.logoColor}
-                    alt={team.name}
-                    loading="lazy"
+                    alt={`${team.name} color logo`}
+                    priority={true}
                     fill
                     sizes="64px"
                     className={cn(
-                      "object-contain transition-all duration-500 ease-out",
-                      showColor ? "opacity-100" : "opacity-0"
+                      "object-contain transition-all duration-500 ease-out absolute inset-0",
+                      showColor ? "opacity-100 visible" : "opacity-0 invisible"
                     )}
-                    priority={false}
                   />
                 </div>
 
@@ -300,12 +300,12 @@ export default function TeamsSection() {
           <div className="relative px-6 md:px-8 lg:px-10 py-8 md:py-10 lg:py-12 z-10">
             <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10 lg:gap-14">
               <div
-                className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 shrink-0 transition-all duration-500"
+                className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 shrink-0 transition-all duration-300"
                 style={{
                   transform: isTransitioning
                     ? "scale(0.85) rotate(-5deg)"
                     : "scale(1) rotate(0deg)",
-                  opacity: isTransitioning ? 0.3 : 1,
+                  opacity: isTransitioning ? 0 : 1,
                   transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
                 }}
               >
@@ -322,16 +322,20 @@ export default function TeamsSection() {
 
                 <div className="relative w-full h-full z-10">
                   <Image
+                    key={selectedTeam.id}
                     src={selectedTeam.logoColor}
                     alt={selectedTeam.name}
-                    loading="lazy"
+                    loading="eager"
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-contain"
+                    sizes="(max-width: 768px) 128px, (max-width: 1200px) 160px, 192px"
+                    className="object-contain transition-opacity duration-300"
+                    onLoad={(e) =>
+                      e.currentTarget.classList.remove("opacity-0")
+                    }
                     style={{
                       filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
                     }}
-                    priority={false}
+                    priority={true}
                   />
                 </div>
               </div>
