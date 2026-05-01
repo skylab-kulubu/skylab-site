@@ -15,6 +15,15 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "SKY LAB Bilgisayar Bilimleri Kulübü",
   description: "SKY LAB Bilgisayar Bilimleri Kulübü, Yıldız Teknik Üniversitesi bünyesinde bilişim alanında gelişimi hedefleyen en aktif öğrenci topluluğu.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: true,
+    },
+  },
 };
 
 export default function RootLayout({

@@ -10,7 +10,8 @@ export const sites: Site[] = [
     image: '/img/sites/yildizplace.png',
     category: 'platform',
     featured: true,
-    tags: ['pixel-art', 'interactive', 'community']
+    tags: ['pixel-art', 'interactive', 'community'],
+    color: { r: 236, g: 72, b: 153 },
   },
   {
     id: 'ytuguessr',
@@ -21,7 +22,8 @@ export const sites: Site[] = [
     image: '/img/sites/ytuguessr.svg',
     category: 'platform',
     featured: true,
-    tags: ['guessr', 'geography', 'panorama']
+    tags: ['guessr', 'geography', 'panorama'],
+    color: { r: 168, g: 85, b: 247 },
   },
   {
     id: 'skycloud',
@@ -32,7 +34,8 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'tool',
     featured: true,
-    tags: ['cloud', 'storage', 'infrastructure']
+    tags: ['cloud', 'storage', 'infrastructure'],
+    color: { r: 59, g: 130, b: 246 },
   },
   {
     id: "forms",
@@ -43,7 +46,8 @@ export const sites: Site[] = [
     image: "/img/sites/skylablogo.svg",
     category: "tool",
     featured: true,
-    tags: ["forms", "registration", "management"]
+    tags: ["forms", "registration", "management"],
+    color: { r: 59, g: 130, b: 246 },
   },
   {
     id: 'skylapp',
@@ -54,7 +58,8 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'tool',
     featured: false,
-    tags: ['utility', 'link-shortener']
+    tags: ['utility', 'link-shortener'],
+    color: { r: 59, g: 130, b: 246 },
   },
   {
     id: 'skysec-articles',
@@ -65,7 +70,8 @@ export const sites: Site[] = [
     image: '/img/sites/skysec.png',
     category: 'resource',
     featured: false,
-    tags: ['security', 'cybersecurity', 'articles']
+    tags: ['security', 'cybersecurity', 'articles'],
+    color: { r: 34, g: 197, b: 94 },
   },
   {
     id: 'oda-durumu',
@@ -76,7 +82,8 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'platform',
     featured: false,
-    tags: ['iot', 'status', 'real-time']
+    tags: ['iot', 'status', 'real-time'],
+    color: { r: 236, g: 72, b: 153 },
   },
   {
     id: 'sunucu-durumu',
@@ -87,7 +94,8 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'tool',
     featured: false,
-    tags: ['devops', 'uptime', 'monitoring']
+    tags: ['devops', 'uptime', 'monitoring'],
+    color: { r: 59, g: 130, b: 246 },
   },
   {
     id: 'skypdf',
@@ -98,7 +106,8 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'tool',
     featured: false,
-    tags: ['utility', 'pdf', 'editor']
+    tags: ['utility', 'pdf', 'editor'],
+    color: { r: 59, g: 130, b: 246 },
   },
   {
     id: 'stant',
@@ -109,6 +118,7 @@ export const sites: Site[] = [
     image: '/img/sites/skylablogo.svg',
     category: 'platform',
     featured: false,
-    tags: ['management', 'events', 'organization']
+    tags: ['management', 'events', 'organization'],
+    color: { r: 236, g: 72, b: 153 },
   }
 ];

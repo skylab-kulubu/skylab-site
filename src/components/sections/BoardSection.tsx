@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   Linkedin,
@@ -20,6 +20,7 @@ export default function BoardSection() {
     "management" | "supervision"
   >("management");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -29,6 +30,9 @@ export default function BoardSection() {
 
   useEffect(() => {
     setIsMounted(true);
+    return () => {
+      transitionTimers.current.forEach(clearTimeout);
+    };
   }, []);
 
   const currentMembers =
@@ -36,13 +40,13 @@ export default function BoardSection() {
       ? boardMembers.management
       : boardMembers.supervision;
 
-  const checkScroll = () => {
+  const checkScroll = useCallback(() => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       setCanScrollLeft(scrollLeft > 10);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkScroll();
@@ -57,7 +61,7 @@ export default function BoardSection() {
         window.removeEventListener("resize", checkScroll);
       };
     }
-  }, [selectedBoard, currentMembers, isVisible]);
+  }, [selectedBoard, currentMembers, isVisible, checkScroll]);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -74,17 +78,19 @@ export default function BoardSection() {
 
     setIsTransitioning(true);
 
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setSelectedBoard(board);
       if (scrollRef.current) {
         scrollRef.current.scrollTo({ left: 0, behavior: "instant" });
       }
 
-      setTimeout(() => {
+      const t2 = setTimeout(() => {
         setIsTransitioning(false);
         checkScroll();
       }, 50);
+      transitionTimers.current.push(t2);
     }, 200);
+    transitionTimers.current.push(t1);
   };
 
   const showAnimations = isMounted && isVisible;
@@ -201,6 +207,7 @@ export default function BoardSection() {
         >
           <button
             onClick={() => scroll("left")}
+            aria-label="Sola kaydır"
             className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110"
             style={{
               background:
@@ -220,6 +227,7 @@ export default function BoardSection() {
 
           <button
             onClick={() => scroll("right")}
+            aria-label="Sağa kaydır"
             className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110"
             style={{
               background:

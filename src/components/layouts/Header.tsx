@@ -89,6 +89,15 @@ export default function Header() {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
+
   const handleNavClick = (e: React.MouseEvent, link: (typeof navLinks)[0]) => {
     if (!link.sectionId) {
       setIsMobileMenuOpen(false);
@@ -257,6 +266,9 @@ export default function Header() {
             <div className="hidden md:block w-30" />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Menüyü kapat" : "Menüyü aç"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
               className="md:hidden relative p-2 rounded-xl transition-all duration-300 group"
               style={{
                 background: isMobileMenuOpen
@@ -297,6 +309,7 @@ export default function Header() {
             />
 
             <motion.div
+              id="mobile-menu"
               initial={{ y: -20, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -20, opacity: 0, scale: 0.95 }}

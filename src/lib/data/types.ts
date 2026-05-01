@@ -1,3 +1,9 @@
+export interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
 export interface Stat {
   value: number;
   label: string;
@@ -28,6 +34,7 @@ export interface Event {
   category: string[];
   url?: string;
   tags: string[];
+  color: RGB;
 }
 
 export interface Site {
@@ -37,10 +44,10 @@ export interface Site {
   description: string;
   url: string;
   image: string;
-  iconName?: string;
   category: 'project' | 'tool' | 'resource' | 'platform' | 'other' | 'community' | 'education';
   featured: boolean;
   tags: string[];
+  color: RGB;
 }
 
 export interface BoardMember {

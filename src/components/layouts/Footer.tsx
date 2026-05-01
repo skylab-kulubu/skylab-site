@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Twitter, Instagram, Linkedin, Github, Youtube } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
@@ -54,23 +55,23 @@ export default function Footer() {
 
   const footerLinks = {
     club: [
-      { href: "/", label: "Ana Sayfa", sectionId: "home" },
-      { href: "/#hakkimizda", label: "Hakkımızda", sectionId: "hakkimizda" },
-      { href: "/#ekipler", label: "Ekiplerimiz", sectionId: "ekipler" },
-      { href: "/#kurul", label: "Kurullarımız", sectionId: "kurul" },
+      { href: "/", label: "Ana Sayfa", external: false },
+      { href: "/#hakkimizda", label: "Hakkımızda", external: false },
+      { href: "/#ekipler", label: "Ekiplerimiz", external: false },
+      { href: "/#kurul", label: "Kurullarımız", external: false },
     ],
     explore: [
-      { href: "/#etkinlikler", label: "Etkinlikler", sectionId: "etkinlikler" },
-      { href: "/#siteler", label: "Siteler", sectionId: "siteler" },
+      { href: "/#etkinlikler", label: "Etkinlikler", external: false },
+      { href: "/#siteler", label: "Siteler", external: false },
       {
         href: "mailto:info@yildizskylab.com",
         label: "İletişim",
-        sectionId: "contact",
+        external: false,
       },
       {
         href: "https://skyl.app/kvkk-metni",
         label: "KVKK Metni",
-        sectionId: "kvkk",
+        external: true,
       },
     ],
   };
@@ -83,13 +84,13 @@ export default function Footer() {
       <div
         className={cn(
           "absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent transition-all duration-1000",
-          isVisible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
+          isVisible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
         )}
       />
       <div
         className={cn(
           "absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 pointer-events-none transition-all duration-1500",
-          isVisible ? "opacity-100" : "opacity-0"
+          isVisible ? "opacity-100" : "opacity-0",
         )}
         style={{
           background:
@@ -105,21 +106,19 @@ export default function Footer() {
               "space-y-6 lg:col-span-1 transition-all duration-700 ease-out",
               isVisible
                 ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+                : "opacity-0 translate-y-8",
             )}
           >
             <div className="h-16 flex items-center overflow-hidden">
-              <img
+              <Image
                 src="/img/skylab-text-logo.svg"
                 alt="Sky Lab"
+                width={160}
+                height={64}
+                className="h-16 w-auto object-contain"
+                style={{ width: "auto", height: "auto" }}
+                priority={false}
                 loading="lazy"
-                className={cn(
-                  "h-16 w-auto object-contain transition-all duration-700",
-                  isVisible
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 -translate-x-8"
-                )}
-                style={{ transitionDelay: "100ms" }}
               />
             </div>
             <p
@@ -127,7 +126,7 @@ export default function Footer() {
                 "text-sm leading-relaxed max-w-xs transition-all duration-700",
                 isVisible
                   ? "opacity-80 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                  : "opacity-0 translate-y-4",
               )}
               style={{ transitionDelay: "200ms" }}
             >
@@ -159,7 +158,7 @@ export default function Footer() {
                 "transition-all duration-700 ease-out",
                 isVisible
                   ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-8"
+                  : "opacity-0 translate-y-8",
               )}
               style={{ transitionDelay: `${group.delay}ms` }}
             >
@@ -168,7 +167,7 @@ export default function Footer() {
                   "text-white font-semibold mb-6 uppercase tracking-widest text-xs transition-all duration-500",
                   isVisible
                     ? "opacity-100 translate-x-0"
-                    : "opacity-0 -translate-x-4"
+                    : "opacity-0 -translate-x-4",
                 )}
                 style={{ transitionDelay: `${group.titleDelay}ms` }}
               >
@@ -182,7 +181,7 @@ export default function Footer() {
                       "transition-all duration-500",
                       isVisible
                         ? "opacity-100 translate-x-0"
-                        : "opacity-0 -translate-x-4"
+                        : "opacity-0 -translate-x-4",
                     )}
                     style={{
                       transitionDelay: `${group.listStartDelay + index * 50}ms`,
@@ -190,6 +189,9 @@ export default function Footer() {
                   >
                     <a
                       href={link.href}
+                      {...(link.external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                       className="group inline-flex items-center gap-2 hover:text-indigo-400 transition-colors"
                     >
                       <span className="w-0 h-px bg-indigo-400 transition-all duration-300 group-hover:w-3" />
@@ -206,22 +208,19 @@ export default function Footer() {
               "flex flex-col items-start lg:items-end justify-start transition-all duration-700 ease-out",
               isVisible
                 ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+                : "opacity-0 translate-y-8",
             )}
             style={{ transitionDelay: "250ms" }}
           >
             <div className="h-16 flex items-center mb-6 overflow-hidden">
-              <img
+              <Image
                 src="/img/ytulogo.png"
                 alt="Yıldız Teknik Üniversitesi"
+                width={64}
+                height={64}
+                className="h-16 w-auto object-contain"
+                style={{ width: "auto", height: "auto" }}
                 loading="lazy"
-                className={cn(
-                  "h-16 w-auto object-contain transition-all duration-700",
-                  isVisible
-                    ? "opacity-90 translate-x-0"
-                    : "opacity-0 translate-x-8"
-                )}
-                style={{ transitionDelay: "350ms" }}
               />
             </div>
             <div className="flex gap-3">
@@ -232,13 +231,17 @@ export default function Footer() {
                   <a
                     key={social.name}
                     href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onMouseEnter={() => setHoveredSocial(social.name)}
                     onMouseLeave={() => setHoveredSocial(null)}
                     className={cn(
                       "group relative w-11 h-11 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 overflow-hidden",
                       social.hoverBg,
                       social.hoverBorder,
-                      isVisible ? "opacity-100 scale-100" : "opacity-0 scale-75"
+                      isVisible
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-75",
                     )}
                     style={{ transitionDelay: `${400 + index * 60}ms` }}
                     aria-label={social.name}
@@ -251,7 +254,7 @@ export default function Footer() {
                       className={cn(
                         "w-5 h-5 text-slate-400 transition-all duration-300 relative z-10",
                         social.hoverText,
-                        isHovered && "scale-110"
+                        isHovered && "scale-110",
                       )}
                     />
                     <div
@@ -272,14 +275,14 @@ export default function Footer() {
         <div
           className={cn(
             "mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 transition-all duration-700",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
           )}
           style={{ transitionDelay: "500ms" }}
         >
           <div
             className={cn(
               "absolute left-6 right-6 -mt-8 h-px bg-linear-to-r from-transparent via-white/10 to-transparent transition-all duration-1000",
-              isVisible ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
+              isVisible ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0",
             )}
             style={{ transitionDelay: "600ms" }}
           />
@@ -289,7 +292,7 @@ export default function Footer() {
               "text-xs text-slate-500 font-medium transition-all duration-500",
               isVisible
                 ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-4"
+                : "opacity-0 -translate-x-4",
             )}
             style={{ transitionDelay: "650ms" }}
           >
@@ -300,7 +303,7 @@ export default function Footer() {
               "flex justify-end transition-all duration-700",
               isVisible
                 ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
+                : "opacity-0 translate-y-4",
             )}
             style={{ transitionDelay: "700ms" }}
           >
@@ -309,6 +312,8 @@ export default function Footer() {
 
               <a
                 href="https://github.com/kanekalp"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group relative flex items-center h-full transition-all duration-500"
               >
                 <div className="grid transition-[grid-template-columns] duration-500 ease-in-out grid-cols-[0fr] group-hover:grid-cols-[1fr]">
@@ -336,7 +341,7 @@ export default function Footer() {
       <div
         className={cn(
           "absolute bottom-0 left-1/2 -translate-x-1/2 w-100 h-25 pointer-events-none transition-all duration-1500",
-          isVisible ? "opacity-100" : "opacity-0"
+          isVisible ? "opacity-100" : "opacity-0",
         )}
         style={{
           background:

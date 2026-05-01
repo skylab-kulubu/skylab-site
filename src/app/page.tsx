@@ -22,9 +22,7 @@ export default function Home() {
         revealDuration={2.5}
       />
 
-      <div className="fixed top-0 left-0 w-full z-9999">
-        <Header />
-      </div>
+      <Header />
 
       <main className="relative z-10 w-full">
         <section

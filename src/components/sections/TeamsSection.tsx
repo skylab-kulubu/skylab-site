@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import { teams, getTeamsByCategory, type Team } from "@/lib/data";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
@@ -15,11 +15,15 @@ export default function TeamsSection() {
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isButtonHovering, setIsButtonHovering] = useState(false);
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   useEffect(() => {
     setIsMounted(true);
+    return () => {
+      transitionTimers.current.forEach(clearTimeout);
+    };
   }, []);
 
   const filteredTeams = useMemo(
@@ -33,20 +37,24 @@ export default function TeamsSection() {
     const newTeams = getTeamsByCategory(category);
     if (newTeams.length > 0) {
       setIsTransitioning(true);
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         setSelectedTeam(newTeams[0]);
-        setTimeout(() => setIsTransitioning(false), 50);
+        const t2 = setTimeout(() => setIsTransitioning(false), 50);
+        transitionTimers.current.push(t2);
       }, 200);
+      transitionTimers.current.push(t1);
     }
   };
 
   const handleTeamSelect = (team: Team) => {
     if (team.id !== selectedTeam.id) {
       setIsTransitioning(true);
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         setSelectedTeam(team);
-        setTimeout(() => setIsTransitioning(false), 50);
+        const t2 = setTimeout(() => setIsTransitioning(false), 50);
+        transitionTimers.current.push(t2);
       }, 200);
+      transitionTimers.current.push(t1);
     }
   };
 
@@ -171,6 +179,8 @@ export default function TeamsSection() {
                 onClick={() => handleTeamSelect(team)}
                 onMouseEnter={() => setHoveredTeam(team.id)}
                 onMouseLeave={() => setHoveredTeam(null)}
+                aria-label={team.name}
+                aria-pressed={isActive}
                 className={cn(
                   "relative group transition-all duration-700 cursor-pointer ease-out",
                   showAnimations
@@ -201,8 +211,8 @@ export default function TeamsSection() {
                   <Image
                     key={`${team.id}-white`}
                     src={team.logoWhite}
-                    alt={`${team.name} white logo`}
-                    priority={true}
+                    alt=""
+                    loading="lazy"
                     fill
                     sizes="64px"
                     className={cn(
@@ -214,8 +224,8 @@ export default function TeamsSection() {
                   <Image
                     key={`${team.id}-color`}
                     src={team.logoColor}
-                    alt={`${team.name} color logo`}
-                    priority={true}
+                    alt=""
+                    loading="lazy"
                     fill
                     sizes="64px"
                     className={cn(
@@ -325,7 +335,7 @@ export default function TeamsSection() {
                     key={selectedTeam.id}
                     src={selectedTeam.logoColor}
                     alt={selectedTeam.name}
-                    loading="eager"
+                    loading="lazy"
                     fill
                     sizes="(max-width: 768px) 128px, (max-width: 1200px) 160px, 192px"
                     className="object-contain transition-opacity duration-300"
@@ -335,7 +345,6 @@ export default function TeamsSection() {
                     style={{
                       filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
                     }}
-                    priority={true}
                   />
                 </div>
               </div>
@@ -392,7 +401,7 @@ export default function TeamsSection() {
             onMouseEnter={() => setIsButtonHovering(true)}
             onMouseLeave={() => setIsButtonHovering(false)}
             onClick={() =>
-              window.open("https://forms.yildizskylab.com/", "_blank")
+              window.open("https://forms.yildizskylab.com/", "_blank", "noopener,noreferrer")
             }
             className="group relative px-8 md:px-12 py-3.5 md:py-4 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer hover:scale-[1.03]"
             style={{

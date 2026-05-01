@@ -58,8 +58,8 @@ export const Universe = forwardRef<HTMLDivElement, UniverseProps>(
     return (
       <div
         ref={ref}
-        className="fixed inset-0 overflow-hidden pointer-events-none z-0"
-        style={{ backgroundColor: SPACE_COLOR, ...style }}
+        className="fixed top-0 left-0 w-full overflow-hidden pointer-events-none z-0"
+        style={{ height: "100lvh", backgroundColor: SPACE_COLOR, ...style }}
         {...props}
       >
         <UniverseWebGL

@@ -1,11 +1,14 @@
 "use client";
 
+import { Users, Sparkles, Code2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { StatsCard } from "@/components/ui/StatsCard";
-import * as Icons from "lucide-react";
 import { stats } from "@/lib/data";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+
+const iconMap: Record<string, LucideIcon> = { Users, Sparkles, Code2 };
 
 export default function StatsCards({
   isVisible: propIsVisible,
@@ -14,10 +17,11 @@ export default function StatsCards({
 }) {
   const { ref: sectionRef, isVisible: scrollIsVisible } = useScrollReveal(0.3);
   const isVisible = propIsVisible ?? scrollIsVisible;
+  const prefersReducedMotion = useReducedMotion();
 
   const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 450], [1, 0]);
-  const translateY = useTransform(scrollY, [0, 450], [0, -20]);
+  const opacity = useTransform(scrollY, [0, 450], prefersReducedMotion ? [1, 1] : [1, 0]);
+  const translateY = useTransform(scrollY, [0, 450], prefersReducedMotion ? [0, 0] : [0, -20]);
   const pointerEvents = useTransform(scrollY, (v) =>
     v > 400 ? "none" : "auto"
   );
@@ -30,7 +34,7 @@ export default function StatsCards({
       <div ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid grid-cols-3 gap-1.5 sm:gap-3 md:gap-6">
           {stats.map((stat, index) => {
-            const Icon = (Icons as any)[stat.iconName];
+            const Icon = iconMap[stat.iconName];
 
             return (
               <div

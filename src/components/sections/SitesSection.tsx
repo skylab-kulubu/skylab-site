@@ -6,41 +6,13 @@ import { ExternalLink, Star } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 import { sites } from "@/lib/data";
-import { extractDominantColor, type RGB } from "@/lib/color-extractor";
+import { extractDominantColor } from "@/lib/color-extractor";
+import type { RGB, Site } from "@/lib/data/types";
 
-export interface Site {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  url: string;
-  image: string;
-  icon?: React.ReactNode;
-  category:
-    | "project"
-    | "tool"
-    | "resource"
-    | "platform"
-    | "other"
-    | "community"
-    | "education";
-  featured: boolean;
-  tags: string[];
-}
-
-const categoryColors: Record<string, RGB> = {
-  project: { r: 168, g: 85, b: 247 },
-  tool: { r: 59, g: 130, b: 246 },
-  resource: { r: 34, g: 197, b: 94 },
-  platform: { r: 236, g: 72, b: 153 },
-  community: { r: 249, g: 115, b: 22 },
-  education: { r: 14, g: 165, b: 233 },
-  default: { r: 99, g: 102, b: 241 },
-};
+const extractionCache = new Map<string, RGB>();
 
 export default function SitesSection() {
   const [isMounted, setIsMounted] = useState(false);
-  const [siteColors, setSiteColors] = useState<Record<string, RGB>>({});
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const sortedSites = useMemo(() => {
@@ -48,6 +20,10 @@ export default function SitesSection() {
       (a, b) => Number(b.featured) - Number(a.featured)
     );
   }, []);
+
+  const [siteColors, setSiteColors] = useState<Record<string, RGB>>(
+    () => Object.fromEntries(sortedSites.map((s) => [s.id, s.color]))
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,19 +37,17 @@ export default function SitesSection() {
 
       await Promise.all(
         sortedSites.map(async (site) => {
-          const fallback =
-            categoryColors[site.category?.toLowerCase()] ||
-            categoryColors.default;
-
-          if (!site.image) {
-            newColors[site.id] = fallback;
+          if (extractionCache.has(site.image)) {
+            newColors[site.id] = extractionCache.get(site.image)!;
             return;
           }
 
           try {
-            newColors[site.id] = await extractDominantColor(site.image);
+            const color = await extractDominantColor(site.image);
+            extractionCache.set(site.image, color);
+            newColors[site.id] = color;
           } catch {
-            newColors[site.id] = fallback;
+            newColors[site.id] = site.color;
           }
         })
       );
@@ -115,15 +89,10 @@ export default function SitesSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 auto-rows-fr">
           {sortedSites.map((site, index) => {
-            const color =
-              siteColors[site.id] ||
-              categoryColors[site.category?.toLowerCase()] ||
-              categoryColors.default;
+            const color = siteColors[site.id];
             const rgbVars = `${color.r}, ${color.g}, ${color.b}`;
             const brighten = (val: number) => Math.min(255, val + 80);
-            const brightVars = `${brighten(color.r)}, ${brighten(
-              color.g
-            )}, ${brighten(color.b)}`;
+            const brightVars = `${brighten(color.r)}, ${brighten(color.g)}, ${brighten(color.b)}`;
 
             return (
               <div
@@ -185,11 +154,7 @@ export default function SitesSection() {
                         boxShadow: "inset 0 0 20px rgba(var(--c-rgb), 0.15)",
                       }}
                     >
-                      {site.icon ? (
-                        <div className="w-full h-full flex items-center justify-center text-3xl">
-                          {site.icon}
-                        </div>
-                      ) : site.image ? (
+                      {site.image ? (
                         <Image
                           src={site.image}
                           alt={site.title}

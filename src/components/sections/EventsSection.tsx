@@ -6,26 +6,21 @@ import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import { getAllEvents } from "@/lib/data";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
-import { extractDominantColor, type RGB } from "@/lib/color-extractor";
-
-const categoryColors: Record<string, RGB> = {
-  hackathon: { r: 168, g: 85, b: 247 },
-  workshop: { r: 59, g: 130, b: 246 },
-  seminer: { r: 236, g: 72, b: 153 },
-  yarışma: { r: 239, g: 68, b: 68 },
-  buluşma: { r: 34, g: 197, b: 94 },
-  zirve: { r: 139, g: 92, b: 246 },
-  default: { r: 99, g: 102, b: 241 },
-};
+import { extractDominantColor } from "@/lib/color-extractor";
+import type { RGB } from "@/lib/data/types";
 
 const events = getAllEvents();
+
+const extractionCache = new Map<string, RGB>();
 
 export default function EventsSection() {
   const [isMounted, setIsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [eventColors, setEventColors] = useState<Record<string, RGB>>({});
+  const [eventColors, setEventColors] = useState<Record<string, RGB>>(
+    () => Object.fromEntries(events.map((e) => [e.id, e.color]))
+  );
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
   const rafRef = useRef<number>(0);
 
@@ -73,22 +68,17 @@ export default function EventsSection() {
 
       await Promise.all(
         events.map(async (event) => {
-          const primaryCategory =
-            event.category?.length > 0
-              ? event.category[0].toLowerCase()
-              : "default";
-          const fallback =
-            categoryColors[primaryCategory] || categoryColors.default;
-
-          if (!event.image) {
-            newColors[event.id] = fallback;
+          if (extractionCache.has(event.image)) {
+            newColors[event.id] = extractionCache.get(event.image)!;
             return;
           }
 
           try {
-            newColors[event.id] = await extractDominantColor(event.image);
+            const color = await extractDominantColor(event.image);
+            extractionCache.set(event.image, color);
+            newColors[event.id] = color;
           } catch {
-            newColors[event.id] = fallback;
+            newColors[event.id] = event.color;
           }
         })
       );
@@ -149,6 +139,7 @@ export default function EventsSection() {
         >
           <button
             onClick={() => scroll("left")}
+            aria-label="Sola kaydır"
             className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/80 backdrop-blur-xl"
             style={{
               borderColor: canScrollLeft
@@ -166,6 +157,7 @@ export default function EventsSection() {
 
           <button
             onClick={() => scroll("right")}
+            aria-label="Sağa kaydır"
             className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/80 backdrop-blur-xl"
             style={{
               borderColor: canScrollRight
@@ -191,24 +183,10 @@ export default function EventsSection() {
             }}
           >
             {events.map((event, index) => {
-              const primaryCategory =
-                event.category?.length > 0
-                  ? event.category[0].toLowerCase()
-                  : "default";
-              const color =
-                eventColors[event.id] ||
-                categoryColors[primaryCategory] ||
-                categoryColors.default;
-
+              const color = eventColors[event.id];
               const rgbVars = `${color.r}, ${color.g}, ${color.b}`;
               const boostBright = 1.4;
-              const brightVars = `${Math.min(
-                255,
-                Math.floor(color.r * boostBright)
-              )}, ${Math.min(
-                255,
-                Math.floor(color.g * boostBright)
-              )}, ${Math.min(255, Math.floor(color.b * boostBright))}`;
+              const brightVars = `${Math.min(255, Math.floor(color.r * boostBright))}, ${Math.min(255, Math.floor(color.g * boostBright))}, ${Math.min(255, Math.floor(color.b * boostBright))}`;
 
               return (
                 <div

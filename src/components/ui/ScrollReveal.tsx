@@ -1,12 +1,13 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 export const ScrollReveal = () => {
   const [mounted, setMounted] = useState(false);
   const { scrollY } = useScroll();
+  const prefersReducedMotion = useReducedMotion();
 
   const scrollOpacity = useTransform(scrollY, [0, 450], [1, 0]);
   const scrollTranslateY = useTransform(scrollY, [0, 450], [0, 40]);
@@ -35,13 +36,13 @@ export const ScrollReveal = () => {
       }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: 2.2,
-          duration: 1.2,
-          ease: [0.34, 1.56, 0.64, 1],
-        }}
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { delay: 2.2, duration: 1.2, ease: [0.34, 1.56, 0.64, 1] }
+        }
         className="flex flex-col items-center gap-5"
       >
         <span className="text-[11px] tracking-[0.5em] uppercase font-bold text-white/30 group-hover:text-purple-400/90 transition-all duration-700 ease-in-out drop-shadow-sm">
@@ -49,12 +50,12 @@ export const ScrollReveal = () => {
         </span>
 
         <motion.div
-          animate={{ y: [0, -8, 0] }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }}
+          transition={
+            prefersReducedMotion
+              ? {}
+              : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+          }
           className={cn(
             "relative p-4 rounded-full transition-all duration-700",
             "bg-white/3 backdrop-blur-xl border border-white/10",
@@ -77,19 +78,24 @@ export const ScrollReveal = () => {
           />
 
           <motion.div
-            animate={{
-              opacity: [0.2, 0.5, 0.2],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            animate={
+              prefersReducedMotion ? {} : { opacity: [0.2, 0.5, 0.2], scale: [1, 1.2, 1] }
+            }
+            transition={
+              prefersReducedMotion ? {} : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            }
             className="absolute inset-0 rounded-full bg-purple-500/15 blur-xl -z-10"
           />
 
           <div className="pointer-events-none absolute inset-0 rounded-full transition-all duration-1000 group-hover:bg-white/2" />
 
           <motion.svg
-            animate={{ opacity: [0.4, 1, 0.4], y: [0, 4, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={
+              prefersReducedMotion ? {} : { opacity: [0.4, 1, 0.4], y: [0, 4, 0] }
+            }
+            transition={
+              prefersReducedMotion ? {} : { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }
             className="w-5 h-5 text-white/70 group-hover:text-white transition-colors duration-500"
             fill="none"
             stroke="currentColor"
