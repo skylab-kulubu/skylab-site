@@ -3,5 +3,12 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-03-01",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" }
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "vars": {
+    "CMS_URL": "https://api.yildizskylab.com/api",
+    "CMS_CDN_URL": "https://api.yildizskylab.com/api/media",
+    "KEYCLOAK_ISSUER": "https://e.yildizskylab.com/realms/e-skylab",
+    "KEYCLOAK_CLIENT_ID": "frontend-main",
+    "NEXTAUTH_URL": "https://yildizskylab.com"
+  }
 }
