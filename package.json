@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "sync": "cms-sync --app-root ./src"
   },
   "dependencies": {
+    "@skylab-kulubu/inscribed-auth": "^0.3.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
+    "inscribed": "^1.2.4",
     "lucide-react": "^0.575.0",
     "next": "^16.1.6",
+    "next-auth": "^4.24.14",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwind-merge": "^3.5.0"

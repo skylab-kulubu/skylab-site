@@ -6,7 +6,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-manrope-sans);
-  
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -52,15 +52,30 @@
   --animate-twinkle: twinkle ease-in-out infinite;
 
   @keyframes shimmer {
-    100% { transform: translateX(100%); }
+    100% {
+      transform: translateX(100%);
+    }
   }
   @keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes twinkle {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.3; transform: scale(0.85); }
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.3;
+      transform: scale(0.85);
+    }
   }
 }
 
@@ -133,7 +148,8 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
-html, body {
+html,
+body {
   background-color: #04030e;
 }
 
@@ -170,7 +186,9 @@ html, body {
   }
 
   @keyframes shine {
-    to { background-position: 200% center; }
+    to {
+      background-position: 200% center;
+    }
   }
 }
 
@@ -198,7 +216,7 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.2); 
+  background: rgba(168, 85, 247, 0.2);
   border-radius: 10px;
   transition: all 0.3s ease;
 }
@@ -214,12 +232,37 @@ html, body {
 }
 
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .animate-marquee {
   display: flex;
   width: max-content;
   animation: marquee 20s linear infinite;
+}
+
+.cms-team-logos > [data-team-hidden] {
+  display: none !important;
+}
+.cms-team-logos > div:has(> [data-team-hidden]) {
+  display: none !important;
+}
+
+.cms-team-logos > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cms-events-row > div {
+  display: flex;
+  flex: 0 0 auto;
+}
+.cms-events-row > div > *:first-child {
+  height: 100%;
 }
