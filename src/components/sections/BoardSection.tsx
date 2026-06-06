@@ -3,13 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
-  Linkedin,
-  Github,
-  Twitter,
-  Instagram,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Linkedin, Github, Twitter, Instagram } from "@/components/ui/BrandIcons";
 import {
   EditableList,
   useCmsBlock,

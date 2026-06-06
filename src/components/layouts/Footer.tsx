@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Twitter, Instagram, Linkedin, Github, Youtube } from "lucide-react";
+import { Twitter, Instagram, Linkedin, Youtube, Github } from "@/components/ui/BrandIcons";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 import { useState } from "react";

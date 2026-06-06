@@ -118,13 +118,6 @@ import {
   GraduationCap,
   Cpu,
   Terminal,
-  Github,
-  Linkedin,
-  Instagram,
-  Twitter,
-  Youtube,
-  Twitch,
-  Figma,
   Palette,
   PenTool,
   Layers,
@@ -136,6 +129,7 @@ import {
   Activity,
   BarChart3,
 } from "lucide-react";
+import { Twitter, Instagram, Linkedin, Youtube, Twitch, Figma, Github } from "@/components/ui/BrandIcons";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { EditableList } from "inscribed";
 import { useCmsContext } from "@/hooks/use-cms-context";
