@@ -22,12 +22,60 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [mounted, setMounted] = useState(false);
+  const [leftOffset, setLeftOffset] = useState(0);
 
   const isProgrammaticScroll = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const findAndObserve = () => {
+      const targetDiv = document.querySelector('div[style*="margin-left"]');
+      if (!targetDiv) return null;
+
+      const updateOffset = () => {
+        const style = targetDiv.getAttribute("style") || "";
+        const match = style.match(/margin-left:\s*(\d+)px/);
+        if (match) {
+          setLeftOffset(parseInt(match[1], 10));
+        } else {
+          setLeftOffset(0);
+        }
+      };
+
+      updateOffset();
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === "style") {
+            updateOffset();
+          }
+        });
+      });
+
+      observer.observe(targetDiv, { attributes: true });
+      return observer;
+    };
+
+    let observer: MutationObserver | null = findAndObserve();
+    let intervalId: NodeJS.Timeout;
+
+    if (!observer) {
+      intervalId = setInterval(() => {
+        observer = findAndObserve();
+        if (observer) {
+          clearInterval(intervalId);
+        }
+      }, 300);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (observer) observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -50,7 +98,7 @@ export default function Header() {
 
       const sectionElements = navLinks
         .map((link) =>
-          link.sectionId ? document.getElementById(link.sectionId) : null
+          link.sectionId ? document.getElementById(link.sectionId) : null,
         )
         .filter((el): el is HTMLElement => el !== null);
 
@@ -148,7 +196,15 @@ export default function Header() {
 
   if (!mounted) {
     return (
-      <header className="fixed top-0 left-0 w-full h-16 sm:h-20 z-50">
+      <header
+        className="fixed top-0 h-16 sm:h-20 z-50"
+        style={{
+          left: `${leftOffset}px`,
+          width: leftOffset ? `calc(100% - ${leftOffset}px)` : "100%",
+          transition:
+            "left 350ms cubic-bezier(0.32, 0.72, 0.18, 1), width 350ms cubic-bezier(0.32, 0.72, 0.18, 1)",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-full" />
       </header>
     );
@@ -156,7 +212,15 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full h-16 sm:h-20 z-50">
+      <header
+        className="fixed top-0 h-16 sm:h-20 z-50"
+        style={{
+          left: `${leftOffset}px`,
+          width: leftOffset ? `calc(100% - ${leftOffset}px)` : "100%",
+          transition:
+            "left 350ms cubic-bezier(0.32, 0.72, 0.18, 1), width 350ms cubic-bezier(0.32, 0.72, 0.18, 1)",
+        }}
+      >
         <div
           className="absolute inset-0 -z-20 transition-opacity duration-700 ease-in-out"
           style={{

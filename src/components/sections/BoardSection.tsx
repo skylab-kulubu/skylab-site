@@ -10,11 +10,32 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { boardMembers } from "@/lib/data";
+import {
+  EditableList,
+  useCmsBlock,
+  EditableRegion,
+} from "inscribed";
+import { useCmsContext } from "@/hooks/use-cms-context";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 
+const boardMemberSchema = {
+  id: { blockType: "Text" as const, defaultValue: "" },
+  name: { blockType: "Text" as const, defaultValue: "" },
+  position: { blockType: "Text" as const, defaultValue: "" },
+  image: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
+  linkedin: { blockType: "Text" as const, defaultValue: "" },
+  github: { blockType: "Text" as const, defaultValue: "" },
+  twitter: { blockType: "Text" as const, defaultValue: "" },
+  instagram: { blockType: "Text" as const, defaultValue: "" },
+};
+
+const defaultManagement: any[] = [];
+
+const defaultSupervision: any[] = [];
+
 export default function BoardSection() {
+  const { isAdmin, setActiveBlock } = useCmsContext();
   const [isMounted, setIsMounted] = useState(false);
   const [selectedBoard, setSelectedBoard] = useState<
     "management" | "supervision"
@@ -28,17 +49,31 @@ export default function BoardSection() {
 
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
+  const managementBlocks = useCmsBlock("board.management", {
+    blockType: "List",
+    defaultValue: [],
+  });
+  const supervisionBlocks = useCmsBlock("board.supervision", {
+    blockType: "List",
+    defaultValue: [],
+  });
+
+  const managementList = Array.isArray(managementBlocks.value)
+    ? managementBlocks.value
+    : defaultManagement;
+  const supervisionList = Array.isArray(supervisionBlocks.value)
+    ? supervisionBlocks.value
+    : defaultSupervision;
+
+  const currentMembers =
+    selectedBoard === "management" ? managementList : supervisionList;
+
   useEffect(() => {
     setIsMounted(true);
     return () => {
       transitionTimers.current.forEach(clearTimeout);
     };
   }, []);
-
-  const currentMembers =
-    selectedBoard === "management"
-      ? boardMembers.management
-      : boardMembers.supervision;
 
   const checkScroll = useCallback(() => {
     if (scrollRef.current) {
@@ -95,6 +130,11 @@ export default function BoardSection() {
 
   const showAnimations = isMounted && isVisible;
 
+  const getImgSrc = (image: any) => {
+    if (!image) return "";
+    return typeof image === "string" ? image : image.src || "";
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -108,7 +148,7 @@ export default function BoardSection() {
             "transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12"
+              : "opacity-0 translate-y-12",
           )}
         >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16">
@@ -123,7 +163,7 @@ export default function BoardSection() {
             "flex justify-center mb-4 transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+              : "opacity-0 translate-y-8",
           )}
           style={{ transitionDelay: "100ms" }}
         >
@@ -154,10 +194,10 @@ export default function BoardSection() {
             <button
               onClick={() => handleBoardChange("management")}
               className={cn(
-                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300",
+                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300 cursor-pointer",
                 selectedBoard === "management"
                   ? "text-white"
-                  : "text-white/50 hover:text-white/80"
+                  : "text-white/50 hover:text-white/80",
               )}
               style={
                 selectedBoard === "management"
@@ -175,10 +215,10 @@ export default function BoardSection() {
             <button
               onClick={() => handleBoardChange("supervision")}
               className={cn(
-                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300",
+                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300 cursor-pointer",
                 selectedBoard === "supervision"
                   ? "text-white"
-                  : "text-white/50 hover:text-white/80"
+                  : "text-white/50 hover:text-white/80",
               )}
               style={
                 selectedBoard === "supervision"
@@ -201,14 +241,14 @@ export default function BoardSection() {
             "relative w-full transition-all duration-1000 ease-out mt-8",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12"
+              : "opacity-0 translate-y-12",
           )}
           style={{ transitionDelay: "200ms" }}
         >
           <button
             onClick={() => scroll("left")}
             aria-label="Sola kaydır"
-            className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110"
+            className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 cursor-pointer"
             style={{
               background:
                 "linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%)",
@@ -228,7 +268,7 @@ export default function BoardSection() {
           <button
             onClick={() => scroll("right")}
             aria-label="Sağa kaydır"
-            className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110"
+            className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 cursor-pointer"
             style={{
               background:
                 "linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%)",
@@ -254,87 +294,245 @@ export default function BoardSection() {
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {currentMembers.map((member, index) => {
-              const socialLinks = [
-                { icon: Linkedin, url: member.linkedin, label: "LinkedIn" },
-                { icon: Github, url: member.github, label: "GitHub" },
-                { icon: Twitter, url: member.twitter, label: "Twitter" },
-                { icon: Instagram, url: member.instagram, label: "Instagram" },
-              ].filter((link) => link.url);
+            {selectedBoard === "management" ? (
+              <EditableList
+                blockPath="board.management"
+                itemSchema={{
+                  id: { blockType: "Text", defaultValue: "" },
+                  name: { blockType: "Text", defaultValue: "" },
+                  position: { blockType: "Text", defaultValue: "" },
+                  image: {
+                    blockType: "Image",
+                    defaultValue: { src: "", alt: "" },
+                  },
+                  linkedin: { blockType: "Text", defaultValue: "" },
+                  github: { blockType: "Text", defaultValue: "" },
+                  twitter: { blockType: "Text", defaultValue: "" },
+                  instagram: { blockType: "Text", defaultValue: "" },
+                }}
+                defaultValue={[]}
+              >
+                {(member, index) => {
+                  const socialLinks = [
+                    { icon: Linkedin, url: member.linkedin, label: "LinkedIn" },
+                    { icon: Github, url: member.github, label: "GitHub" },
+                    { icon: Twitter, url: member.twitter, label: "Twitter" },
+                    {
+                      icon: Instagram,
+                      url: member.instagram,
+                      label: "Instagram",
+                    },
+                  ].filter((link) => link.url);
 
-              return (
-                <div
-                  key={member.id}
-                  className={cn(
-                    "relative shrink-0 w-70 md:w-[320px] transition-all ease-out",
-                    showAnimations && !isTransitioning
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-12"
-                  )}
-                  style={{
-                    transitionDuration: isTransitioning ? "150ms" : "700ms",
-                    transitionDelay: isTransitioning
-                      ? "0ms"
-                      : `${200 + index * 80}ms`,
-                    isolation: "isolate",
-                  }}
-                >
-                  <div className="group relative rounded-2xl border transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 bg-linear-to-br from-[#141428]/60 to-[#0a0a1e]/80 border-white/5 hover:border-purple-500/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(168,85,247,0.3)] hover:-translate-y-3 hover:scale-[1.02]">
-                    <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
-
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
-
-                    <Image
-                      src={member.image}
-                      loading="lazy"
-                      alt={member.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
-                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105 brightness-90"
-                    />
-
+                  return (
                     <div
-                      className="absolute inset-0 transition-all duration-500 z-10"
+                      key={member.id || index}
+                      className={cn(
+                        "relative shrink-0 w-70 md:w-[320px] transition-all ease-out",
+                        showAnimations && !isTransitioning
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-12",
+                      )}
                       style={{
-                        background:
-                          "linear-gradient(to top, rgba(10, 10, 30, 0.95) 0%, rgba(10, 10, 30, 0.4) 40%, rgba(10, 10, 30, 0.1) 70%, transparent 100%)",
+                        transitionDuration: isTransitioning ? "150ms" : "700ms",
+                        transitionDelay: isTransitioning
+                          ? "0ms"
+                          : `${200 + index * 80}ms`,
+                        isolation: "isolate",
                       }}
-                    />
+                    >
+                      <div
+                        onClick={() => {
+                          if (isAdmin) {
+                            setActiveBlock("board.management");
+                          }
+                        }}
+                        className="group relative rounded-2xl border transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 bg-linear-to-br from-[#141428]/60 to-[#0a0a1e]/80 border-white/5 hover:border-purple-500/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(168,85,247,0.3)] hover:-translate-y-3 hover:scale-[1.02]"
+                      >
+                        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
-                    {socialLinks.length > 0 && (
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 transition-all duration-500 opacity-0 translate-x-5 group-hover:opacity-100 group-hover:translate-x-0 z-40">
-                        {socialLinks.map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={link.label}
-                            className="p-2.5 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 hover:bg-white/20"
-                            style={{ transitionDelay: `${idx * 50}ms` }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <link.icon className="w-4 h-4 text-white" />
-                          </a>
-                        ))}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
+
+                        {getImgSrc(member.image) ? (
+                          <Image
+                            src={getImgSrc(member.image)}
+                            loading="lazy"
+                            alt={member.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                            className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105 brightness-90"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-linear-to-br from-purple-900/40 to-indigo-950/40 flex items-center justify-center">
+                            <span className="text-white/20 text-xs font-semibold uppercase tracking-wider">
+                              Fotoğraf Yok
+                            </span>
+                          </div>
+                        )}
+
+                        <div
+                          className="absolute inset-0 transition-all duration-500 z-10"
+                          style={{
+                            background:
+                              "linear-gradient(to top, rgba(10, 10, 30, 0.95) 0%, rgba(10, 10, 30, 0.4) 40%, rgba(10, 10, 30, 0.1) 70%, transparent 100%)",
+                          }}
+                        />
+
+                        {socialLinks.length > 0 && (
+                          <div className="absolute top-4 right-4 flex flex-col gap-2 transition-all duration-500 opacity-0 translate-x-5 group-hover:opacity-100 group-hover:translate-x-0 z-40">
+                            {socialLinks.map((link, idx) => (
+                              <a
+                                key={idx}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={link.label}
+                                className="p-2.5 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 hover:bg-white/20"
+                                style={{ transitionDelay: `${idx * 50}ms` }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <link.icon className="w-4 h-4 text-white" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
+                          <h3 className="text-xl font-bold mb-1.5 transition-colors duration-300 whitespace-normal text-white group-hover:text-purple-300 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                            {member.name}
+                          </h3>
+
+                          <p className="text-sm font-medium line-clamp-2 transition-colors duration-300 text-purple-400 group-hover:text-purple-300/80 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
+                            {member.position}
+                          </p>
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-30 bg-linear-to-r from-transparent via-purple-500/60 to-transparent" />
                       </div>
-                    )}
-
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
-                      <h3 className="text-xl font-bold mb-1.5 transition-colors duration-300 whitespace-normal text-white group-hover:text-purple-300 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                        {member.name}
-                      </h3>
-
-                      <p className="text-sm font-medium line-clamp-2 transition-colors duration-300 text-purple-400 group-hover:text-purple-300/80 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
-                        {member.position}
-                      </p>
                     </div>
+                  );
+                }}
+              </EditableList>
+            ) : (
+              <EditableList
+                blockPath="board.supervision"
+                itemSchema={{
+                  id: { blockType: "Text", defaultValue: "" },
+                  name: { blockType: "Text", defaultValue: "" },
+                  position: { blockType: "Text", defaultValue: "" },
+                  image: {
+                    blockType: "Image",
+                    defaultValue: { src: "", alt: "" },
+                  },
+                  linkedin: { blockType: "Text", defaultValue: "" },
+                  github: { blockType: "Text", defaultValue: "" },
+                  twitter: { blockType: "Text", defaultValue: "" },
+                  instagram: { blockType: "Text", defaultValue: "" },
+                }}
+                defaultValue={[]}
+              >
+                {(member, index) => {
+                  const socialLinks = [
+                    { icon: Linkedin, url: member.linkedin, label: "LinkedIn" },
+                    { icon: Github, url: member.github, label: "GitHub" },
+                    { icon: Twitter, url: member.twitter, label: "Twitter" },
+                    {
+                      icon: Instagram,
+                      url: member.instagram,
+                      label: "Instagram",
+                    },
+                  ].filter((link) => link.url);
 
-                    <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-30 bg-linear-to-r from-transparent via-purple-500/60 to-transparent" />
-                  </div>
-                </div>
-              );
-            })}
+                  return (
+                    <div
+                      key={member.id || index}
+                      className={cn(
+                        "relative shrink-0 w-70 md:w-[320px] transition-all ease-out",
+                        showAnimations && !isTransitioning
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-12",
+                      )}
+                      style={{
+                        transitionDuration: isTransitioning ? "150ms" : "700ms",
+                        transitionDelay: isTransitioning
+                          ? "0ms"
+                          : `${200 + index * 80}ms`,
+                        isolation: "isolate",
+                      }}
+                    >
+                      <div
+                        onClick={() => {
+                          if (isAdmin) {
+                            setActiveBlock("board.supervision");
+                          }
+                        }}
+                        className="group relative rounded-2xl border transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 bg-linear-to-br from-[#141428]/60 to-[#0a0a1e]/80 border-white/5 hover:border-purple-500/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(168,85,247,0.3)] hover:-translate-y-3 hover:scale-[1.02]"
+                      >
+                        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
+
+                        {getImgSrc(member.image) ? (
+                          <Image
+                            src={getImgSrc(member.image)}
+                            loading="lazy"
+                            alt={member.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                            className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105 brightness-90"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-linear-to-br from-purple-900/40 to-indigo-950/40 flex items-center justify-center">
+                            <span className="text-white/20 text-xs font-semibold uppercase tracking-wider">
+                              Fotoğraf Yok
+                            </span>
+                          </div>
+                        )}
+
+                        <div
+                          className="absolute inset-0 transition-all duration-500 z-10"
+                          style={{
+                            background:
+                              "linear-gradient(to top, rgba(10, 10, 30, 0.95) 0%, rgba(10, 10, 30, 0.4) 40%, rgba(10, 10, 30, 0.1) 70%, transparent 100%)",
+                          }}
+                        />
+
+                        {socialLinks.length > 0 && (
+                          <div className="absolute top-4 right-4 flex flex-col gap-2 transition-all duration-500 opacity-0 translate-x-5 group-hover:opacity-100 group-hover:translate-x-0 z-40">
+                            {socialLinks.map((link, idx) => (
+                              <a
+                                key={idx}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={link.label}
+                                className="p-2.5 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 hover:bg-white/20"
+                                style={{ transitionDelay: `${idx * 50}ms` }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <link.icon className="w-4 h-4 text-white" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
+                          <h3 className="text-xl font-bold mb-1.5 transition-colors duration-300 whitespace-normal text-white group-hover:text-purple-300 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                            {member.name}
+                          </h3>
+
+                          <p className="text-sm font-medium line-clamp-2 transition-colors duration-300 text-purple-400 group-hover:text-purple-300/80 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
+                            {member.position}
+                          </p>
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-30 bg-linear-to-r from-transparent via-purple-500/60 to-transparent" />
+                      </div>
+                    </div>
+                  );
+                }}
+              </EditableList>
+            )}
           </div>
         </div>
 
@@ -343,7 +541,7 @@ export default function BoardSection() {
             "flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4"
+              : "opacity-0 translate-y-4",
           )}
           style={{ transitionDelay: "600ms" }}
         >

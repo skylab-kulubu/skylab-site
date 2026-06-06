@@ -2,22 +2,106 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
-import { teams, getTeamsByCategory, type Team } from "@/lib/data";
+import {
+  useCmsBlock,
+  EditableRegion,
+  EditableList,
+} from "inscribed";
+import { useCmsContext } from "@/hooks/use-cms-context";
+import { teams as defaultTeams, type Team } from "@/lib/data";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 
 export default function TeamsSection() {
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<Team>(teams[0]);
   const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<"ar-ge" | "sosyal">(
-    "ar-ge"
-  );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isButtonHovering, setIsButtonHovering] = useState(false);
   const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const { isAdmin, setActiveBlock } = useCmsContext();
 
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
+
+  const teamsBlock = useCmsBlock("teams.list", {
+    blockType: "List",
+    defaultValue: [],
+  });
+  const rawTeamsList = Array.isArray(teamsBlock.value)
+    ? teamsBlock.value
+    : defaultTeams;
+
+  const categories = useMemo(() => {
+    const cats = Array.from(
+      new Set(
+        rawTeamsList
+          .map((t: any) => (t.category || "").trim())
+          .filter((c: string) => c.length > 0),
+      ),
+    );
+    return cats.length > 0 ? cats : ["Ar-Ge", "Sosyal"];
+  }, [rawTeamsList]);
+
+  const [activeCategory, setActiveCategory] = useState<string>(() => {
+    return categories[0] || "Ar-Ge";
+  });
+
+  const teamsList = useMemo(() => {
+    return rawTeamsList.map((team: any, index: number) => {
+      const fallbackId =
+        team.id ||
+        (team.name
+          ? `team-${team.name
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9]+/g, "-")}`
+          : `new-team-${index}`);
+
+      const fallbackCategory =
+        (team.category || "").trim() === "" ? activeCategory : team.category;
+
+      return {
+        ...team,
+        id: fallbackId,
+        category: fallbackCategory,
+      };
+    });
+  }, [rawTeamsList, activeCategory]);
+
+  const filteredTeams = useMemo(() => {
+    return teamsList.filter(
+      (t: any) => (t.category || "Diğer") === activeCategory,
+    );
+  }, [teamsList, activeCategory]);
+
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(() => {
+    return filteredTeams[0]?.id || null;
+  });
+
+  const selectedTeam =
+    filteredTeams.find((t) => t.id === selectedTeamId) ||
+    filteredTeams[0] ||
+    null;
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      if (!activeCategory || !categories.includes(activeCategory)) {
+        setActiveCategory(categories[0]);
+      }
+    } else {
+      setActiveCategory("");
+    }
+  }, [categories, activeCategory]);
+
+  useEffect(() => {
+    if (filteredTeams.length > 0) {
+      const exists = filteredTeams.some((t) => t.id === selectedTeamId);
+      if (!exists) {
+        setSelectedTeamId(filteredTeams[0].id);
+      }
+    } else {
+      setSelectedTeamId(null);
+    }
+  }, [filteredTeams, selectedTeamId]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -26,31 +110,31 @@ export default function TeamsSection() {
     };
   }, []);
 
-  const filteredTeams = useMemo(
-    () => getTeamsByCategory(activeCategory),
-    [activeCategory]
-  );
-
-  const handleCategoryChange = (category: "ar-ge" | "sosyal") => {
+  const handleCategoryChange = (category: string) => {
     if (category === activeCategory) return;
     setActiveCategory(category);
-    const newTeams = getTeamsByCategory(category);
+    const newTeams = teamsList.filter(
+      (t: any) => (t.category || "Diğer") === category,
+    );
     if (newTeams.length > 0) {
       setIsTransitioning(true);
       const t1 = setTimeout(() => {
-        setSelectedTeam(newTeams[0]);
+        setSelectedTeamId(newTeams[0].id);
         const t2 = setTimeout(() => setIsTransitioning(false), 50);
         transitionTimers.current.push(t2);
       }, 200);
       transitionTimers.current.push(t1);
+    } else {
+      setSelectedTeamId(null);
     }
   };
 
-  const handleTeamSelect = (team: Team) => {
-    if (team.id !== selectedTeam.id) {
+  const handleTeamSelect = (team: any) => {
+    if (!team.id) return;
+    if (team.id !== selectedTeamId) {
       setIsTransitioning(true);
       const t1 = setTimeout(() => {
-        setSelectedTeam(team);
+        setSelectedTeamId(team.id);
         const t2 = setTimeout(() => setIsTransitioning(false), 50);
         transitionTimers.current.push(t2);
       }, 200);
@@ -59,6 +143,12 @@ export default function TeamsSection() {
   };
 
   const showAnimations = isMounted && isVisible;
+
+  const getImgSrc = (logo: any) => {
+    if (!logo) return null;
+    const src = typeof logo === "string" ? logo : logo.src;
+    return src || null;
+  };
 
   return (
     <section
@@ -73,7 +163,7 @@ export default function TeamsSection() {
             "text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12"
+              : "opacity-0 translate-y-12",
           )}
         >
           <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
@@ -86,7 +176,7 @@ export default function TeamsSection() {
             "flex justify-center mb-10 md:mb-12 transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+              : "opacity-0 translate-y-8",
           )}
           style={{ transitionDelay: "100ms" }}
         >
@@ -114,150 +204,192 @@ export default function TeamsSection() {
               }}
             />
 
-            <button
-              onClick={() => handleCategoryChange("ar-ge")}
-              className={cn(
-                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300",
-                activeCategory === "ar-ge"
-                  ? "text-white"
-                  : "text-white/70 hover:text-white/80"
-              )}
-              style={
-                activeCategory === "ar-ge"
-                  ? {
-                      background:
-                        "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)",
-                      boxShadow:
-                        "inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(168, 85, 247, 0.25)",
-                    }
-                  : {}
-              }
-            >
-              Ar-Ge
-            </button>
-            <button
-              onClick={() => handleCategoryChange("sosyal")}
-              className={cn(
-                "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300",
-                activeCategory === "sosyal"
-                  ? "text-white"
-                  : "text-white/50 hover:text-white/80"
-              )}
-              style={
-                activeCategory === "sosyal"
-                  ? {
-                      background:
-                        "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)",
-                      boxShadow:
-                        "inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(168, 85, 247, 0.25)",
-                    }
-                  : {}
-              }
-            >
-              Sosyal
-            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategoryChange(category)}
+                className={cn(
+                  "relative px-6 md:px-10 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-300 capitalize",
+                  activeCategory === category
+                    ? "text-white"
+                    : "text-white/50 hover:text-white/80",
+                )}
+                style={
+                  activeCategory === category
+                    ? {
+                        background:
+                          "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)",
+                        boxShadow:
+                          "inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(168, 85, 247, 0.25)",
+                      }
+                    : {}
+                }
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
 
         <div
           className={cn(
-            "flex justify-center items-center gap-6 md:gap-10 lg:gap-12 mb-10 md:mb-12 flex-wrap transition-all duration-1000 ease-out",
+            "mb-10 md:mb-12 transition-all duration-1000 ease-out flex justify-center w-full",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+              : "opacity-0 translate-y-8",
           )}
           style={{ transitionDelay: "200ms" }}
         >
-          {filteredTeams.map((team, index) => {
-            const isActive = selectedTeam.id === team.id;
-            const isHovered = hoveredTeam === team.id;
-            const showColor = isActive || isHovered;
+          <div className="cms-team-logos flex flex-wrap justify-center items-center gap-6 md:gap-10 lg:gap-12 w-full max-w-5xl">
+            <EditableList
+              blockPath="teams.list"
+              itemSchema={{
+                id: { blockType: "Text", defaultValue: "" },
+                name: { blockType: "Text", defaultValue: "" },
+                slug: { blockType: "Text", defaultValue: "" },
+                category: { blockType: "Text", defaultValue: "Ar-Ge" },
+                logoWhite: {
+                  blockType: "Image",
+                  defaultValue: { src: "", alt: "" },
+                },
+                logoColor: {
+                  blockType: "Image",
+                  defaultValue: { src: "", alt: "" },
+                },
+                description: { blockType: "RichText", defaultValue: "" },
+              }}
+              defaultValue={[]}
+            >
+              {(rawTeam, index) => {
+                const team = teamsList[index] || {
+                  ...rawTeam,
+                  id: rawTeam.id || `new-team-${index}`,
+                  category:
+                    (rawTeam.category || "").trim() === ""
+                      ? activeCategory
+                      : rawTeam.category,
+                };
 
-            return (
-              <button
-                key={team.id}
-                onClick={() => handleTeamSelect(team)}
-                onMouseEnter={() => setHoveredTeam(team.id)}
-                onMouseLeave={() => setHoveredTeam(null)}
-                aria-label={team.name}
-                aria-pressed={isActive}
-                className={cn(
-                  "relative group transition-all duration-700 cursor-pointer ease-out",
-                  showAnimations
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-75"
-                )}
-                style={{
-                  width: "clamp(48px, 4vw, 64px)",
-                  aspectRatio: "1",
-                  transitionDelay: `${300 + index * 80}ms`,
-                }}
-              >
-                <div
-                  className="absolute inset-0 rounded-full transition-all duration-500 ease-out pointer-events-none"
-                  style={{
-                    background:
-                      isActive || isHovered
-                        ? "radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 100%)"
-                        : "transparent",
-                    filter: "blur(18px)",
-                    opacity: isActive ? 1 : isHovered ? 0.7 : 0,
-                    transform: isActive ? "scale(1.5)" : "scale(1.3)",
-                    zIndex: 0,
-                  }}
-                />
+                const isInCategory =
+                  (team.category || "Diğer") === activeCategory;
+                if (!isInCategory) {
+                  return <div data-team-hidden className="hidden" />;
+                }
 
-                <div className="relative w-full h-full z-10 flex items-center justify-center">
-                  <Image
-                    key={`${team.id}-white`}
-                    src={team.logoWhite}
-                    alt=""
-                    loading="lazy"
-                    fill
-                    sizes="64px"
+                const isActive = selectedTeamId === team.id;
+                const isHovered = hoveredTeam === team.id;
+                const showColor = isActive || isHovered;
+
+                return (
+                  <button
+                    key={team.id || index}
+                    onClick={() => {
+                      handleTeamSelect(team);
+                      if (isAdmin) {
+                        setActiveBlock("teams.list");
+                      }
+                    }}
+                    onMouseEnter={() => setHoveredTeam(team.id)}
+                    onMouseLeave={() => setHoveredTeam(null)}
+                    aria-label={team.name}
+                    aria-pressed={isActive}
                     className={cn(
-                      "object-contain transition-all duration-500 ease-out",
-                      showColor ? "opacity-0 invisible" : "opacity-100 visible"
+                      "relative group transition-all duration-700 cursor-pointer ease-out flex-none flex justify-center items-center",
+                      showAnimations
+                        ? "opacity-100 scale-100"
+                        : "opacity-0 scale-75",
                     )}
-                  />
+                    style={{
+                      width: "clamp(48px, 4vw, 64px)",
+                      aspectRatio: "1",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 rounded-full transition-all duration-500 ease-out pointer-events-none"
+                      style={{
+                        background:
+                          isActive || isHovered
+                            ? "radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 100%)"
+                            : "transparent",
+                        filter: "blur(18px)",
+                        opacity: isActive ? 1 : isHovered ? 0.7 : 0,
+                        transform: isActive ? "scale(1.5)" : "scale(1.3)",
+                        zIndex: 0,
+                      }}
+                    />
 
-                  <Image
-                    key={`${team.id}-color`}
-                    src={team.logoColor}
-                    alt=""
-                    loading="lazy"
-                    fill
-                    sizes="64px"
-                    className={cn(
-                      "object-contain transition-all duration-500 ease-out absolute inset-0",
-                      showColor ? "opacity-100 visible" : "opacity-0 invisible"
-                    )}
-                  />
-                </div>
+                    <div className="relative w-full h-full z-10 flex items-center justify-center pointer-events-none">
+                      {getImgSrc(team.logoWhite) ? (
+                        <Image
+                          key={`${team.id}-white`}
+                          src={getImgSrc(team.logoWhite)!}
+                          alt=""
+                          loading="lazy"
+                          fill
+                          sizes="64px"
+                          className={cn(
+                            "object-contain transition-all duration-500 ease-out",
+                            showColor
+                              ? "opacity-0 invisible"
+                              : "opacity-100 visible",
+                          )}
+                        />
+                      ) : (
+                        <span className="text-white/20 text-[10px] font-bold uppercase truncate">
+                          {team.name ? team.name.slice(0, 3) : "NEW"}
+                        </span>
+                      )}
 
-                <div
-                  className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-full transition-all duration-500 pointer-events-none z-20"
-                  style={{
-                    width: isActive ? "6px" : "0px",
-                    height: isActive ? "6px" : "0px",
-                    background:
-                      "linear-gradient(135deg, rgba(216, 180, 254, 0.9) 0%, rgba(168, 85, 247, 1) 100%)",
-                    boxShadow: isActive
-                      ? "0 0 24px rgba(168, 85, 247, 0.9)"
-                      : "none",
-                  }}
-                />
-              </button>
-            );
-          })}
+                      {getImgSrc(team.logoColor) && (
+                        <Image
+                          key={`${team.id}-color`}
+                          src={getImgSrc(team.logoColor)!}
+                          alt=""
+                          loading="lazy"
+                          fill
+                          sizes="64px"
+                          className={cn(
+                            "object-contain transition-all duration-500 ease-out absolute inset-0",
+                            showColor
+                              ? "opacity-100 visible"
+                              : "opacity-0 invisible",
+                          )}
+                        />
+                      )}
+                    </div>
+
+                    <div
+                      className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 rounded-full transition-all duration-500 pointer-events-none z-20"
+                      style={{
+                        width: isActive ? "6px" : "0px",
+                        height: isActive ? "6px" : "0px",
+                        background:
+                          "linear-gradient(135deg, rgba(216, 180, 254, 0.9) 0%, rgba(168, 85, 247, 1) 100%)",
+                        boxShadow: isActive
+                          ? "0 0 24px rgba(168, 85, 247, 0.9)"
+                          : "none",
+                      }}
+                    />
+                  </button>
+                );
+              }}
+            </EditableList>
+          </div>
         </div>
 
         <div
+          onClick={() => {
+            if (isAdmin) {
+              setActiveBlock("teams.list");
+            }
+          }}
           className={cn(
             "relative rounded-2xl md:rounded-3xl overflow-hidden group border transition-all duration-700 ease-out hover:scale-[1.01]",
+            isAdmin &&
+              "cursor-pointer hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12"
+              : "opacity-0 translate-y-12",
           )}
           style={{
             background:
@@ -322,7 +454,7 @@ export default function TeamsSection() {
                 <div
                   className={cn(
                     "pointer-events-none absolute inset-0 -z-10 scale-150 rounded-full bg-purple-500/40 blur-3xl transition-all duration-700",
-                    !isTransitioning && "animate-pulse"
+                    !isTransitioning && "animate-pulse",
                   )}
                   style={{
                     opacity: isTransitioning ? 0.2 : 0.7,
@@ -331,21 +463,29 @@ export default function TeamsSection() {
                 />
 
                 <div className="relative w-full h-full z-10">
-                  <Image
-                    key={selectedTeam.id}
-                    src={selectedTeam.logoColor}
-                    alt={selectedTeam.name}
-                    loading="lazy"
-                    fill
-                    sizes="(max-width: 768px) 128px, (max-width: 1200px) 160px, 192px"
-                    className="object-contain transition-opacity duration-300"
-                    onLoad={(e) =>
-                      e.currentTarget.classList.remove("opacity-0")
-                    }
-                    style={{
-                      filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
-                    }}
-                  />
+                  {selectedTeam && getImgSrc(selectedTeam.logoColor) ? (
+                    <Image
+                      key={selectedTeam.id}
+                      src={getImgSrc(selectedTeam.logoColor)!}
+                      alt={selectedTeam.name}
+                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 128px, (max-width: 1200px) 160px, 192px"
+                      className="object-contain transition-opacity duration-300"
+                      onLoad={(e) =>
+                        e.currentTarget.classList.remove("opacity-0")
+                      }
+                      style={{
+                        filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-linear-to-br from-purple-900/40 to-indigo-950/40 flex items-center justify-center rounded-2xl">
+                      <span className="text-white/20 text-xs font-semibold uppercase tracking-wider">
+                        Logo Yok
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div
@@ -364,17 +504,18 @@ export default function TeamsSection() {
                     textShadow: "0 0 20px rgba(255, 255, 255, 0.15)",
                   }}
                 >
-                  {selectedTeam.name}
+                  {selectedTeam ? selectedTeam.name : "Ekip Seçilmedi"}
                 </h3>
 
-                <p
+                <div
                   className="text-sm md:text-base lg:text-lg text-white/80 leading-relaxed"
                   style={{
                     textShadow: "0 0 10px rgba(255, 255, 255, 0.08)",
                   }}
-                >
-                  {selectedTeam.description}
-                </p>
+                  dangerouslySetInnerHTML={{
+                    __html: selectedTeam ? selectedTeam.description : "",
+                  }}
+                />
                 <div className="hidden md:flex mt-5 lg:mt-6 md:justify-start lg:justify-end">
                   <div
                     className="h-0.5 bg-linear-to-r from-transparent via-purple-400/60 to-transparent rounded-full transition-all duration-700"
@@ -393,7 +534,7 @@ export default function TeamsSection() {
             "flex justify-center mt-10 md:mt-12 transition-all duration-1000 ease-out",
             showAnimations
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+              : "opacity-0 translate-y-8",
           )}
           style={{ transitionDelay: "500ms" }}
         >
@@ -401,7 +542,11 @@ export default function TeamsSection() {
             onMouseEnter={() => setIsButtonHovering(true)}
             onMouseLeave={() => setIsButtonHovering(false)}
             onClick={() =>
-              window.open("https://forms.yildizskylab.com/", "_blank", "noopener,noreferrer")
+              window.open(
+                "https://forms.yildizskylab.com/",
+                "_blank",
+                "noopener,noreferrer",
+              )
             }
             className="group relative px-8 md:px-12 py-3.5 md:py-4 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer hover:scale-[1.03]"
             style={{
@@ -422,13 +567,13 @@ export default function TeamsSection() {
             <div
               className={cn(
                 "pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/10 to-transparent transition-all duration-1000 ease-in-out",
-                isButtonHovering ? "translate-x-full opacity-100" : "opacity-0"
+                isButtonHovering ? "translate-x-full opacity-100" : "opacity-0",
               )}
             />
             <div
               className={cn(
                 "pointer-events-none absolute -right-4 -top-4 h-24 w-24 rounded-full bg-purple-400/20 blur-2xl transition-all duration-500",
-                isButtonHovering ? "opacity-80 scale-150" : "opacity-40"
+                isButtonHovering ? "opacity-80 scale-150" : "opacity-40",
               )}
             />
             <div
@@ -455,7 +600,7 @@ export default function TeamsSection() {
         <div
           className={cn(
             "pt-12 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
           )}
           style={{ transitionDelay: "600ms" }}
         >
