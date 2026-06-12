@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "predev": "cms-sync --app-root ./src",
     "dev": "next dev --webpack",
+    "prebuild": "cms-sync --app-root ./src",
     "build": "next build --webpack",
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
