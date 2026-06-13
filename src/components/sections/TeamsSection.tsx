@@ -6,8 +6,13 @@ import { useCmsBlock, EditableList } from "inscribed";
 import { useCmsContext } from "@/hooks/use-cms-context";
 import { teams as defaultTeams } from "@/lib/data";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 import TeamsCollection from "./teams/TeamsCollection";
+import { extractDominantColor } from "@/lib/color-extractor";
+import type { RGB } from "@/lib/data/types";
+
+const extractionCache = new Map<string, RGB>();
 
 const getImgSrc = (logo: any): string | null => {
   if (!logo) return null;
@@ -44,6 +49,7 @@ function TeamLogoButton({
   onSelect,
   onHoverStart,
   onHoverEnd,
+  teamColor = { r: 168, g: 85, b: 247 },
 }: {
   team: any;
   isActive: boolean;
@@ -52,8 +58,12 @@ function TeamLogoButton({
   onSelect: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
+  teamColor?: RGB;
 }) {
   const showColor = isActive || isHovered;
+  const rgb = `${teamColor.r}, ${teamColor.g}, ${teamColor.b}`;
+  const brighten = (val: number) => Math.min(255, val + 80);
+  const brightRgb = `${brighten(teamColor.r)}, ${brighten(teamColor.g)}, ${brighten(teamColor.b)}`;
 
   return (
     <button
@@ -76,7 +86,7 @@ function TeamLogoButton({
         style={{
           background:
             isActive || isHovered
-              ? "radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 100%)"
+              ? `radial-gradient(circle, rgba(${rgb}, 0.5) 0%, rgba(${rgb}, 0.2) 50%, transparent 100%)`
               : "transparent",
           filter: "blur(18px)",
           opacity: isActive ? 1 : isHovered ? 0.7 : 0,
@@ -126,9 +136,8 @@ function TeamLogoButton({
         style={{
           width: isActive ? "6px" : "0px",
           height: isActive ? "6px" : "0px",
-          background:
-            "linear-gradient(135deg, rgba(216, 180, 254, 0.9) 0%, rgba(168, 85, 247, 1) 100%)",
-          boxShadow: isActive ? "0 0 24px rgba(168, 85, 247, 0.9)" : "none",
+          background: `linear-gradient(135deg, rgba(${brightRgb}, 0.9) 0%, rgba(${rgb}, 1) 100%)`,
+          boxShadow: isActive ? `0 0 24px rgba(${rgb}, 0.9)` : "none",
         }}
       />
     </button>
@@ -190,6 +199,47 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
     [argeTeams, listOthers],
   );
 
+  const [teamColors, setTeamColors] = useState<Record<string, RGB>>({});
+
+  const teamsImageCacheKey = teamsList
+    .map((team) => `${team.id || team.name}:${getImgSrc(team.logoColor) || ""}`)
+    .join("|");
+
+  useEffect(() => {
+    let isActive = true;
+    const loadColors = async () => {
+      const newColors: Record<string, RGB> = {};
+      await Promise.all(
+        teamsList.map(async (team) => {
+          const key = team.id || team.name;
+          const imgSrc = getImgSrc(team.logoColor);
+          if (!imgSrc) {
+            newColors[key] = { r: 168, g: 85, b: 247 };
+            return;
+          }
+          if (extractionCache.has(imgSrc)) {
+            newColors[key] = extractionCache.get(imgSrc)!;
+            return;
+          }
+          try {
+            const color = await extractDominantColor(imgSrc);
+            extractionCache.set(imgSrc, color);
+            newColors[key] = color;
+          } catch {
+            newColors[key] = { r: 168, g: 85, b: 247 };
+          }
+        }),
+      );
+      if (isActive) {
+        setTeamColors(newColors);
+      }
+    };
+    loadColors();
+    return () => {
+      isActive = false;
+    };
+  }, [teamsImageCacheKey]);
+
   const filteredTeams = useMemo(() => {
     return teamsList.filter(
       (t: any) => (t.category || "Diğer") === activeCategory,
@@ -204,6 +254,11 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
     filteredTeams.find((t) => t.id === selectedTeamId) ||
     filteredTeams[0] ||
     null;
+
+  const selectedTeamColor = selectedTeam
+    ? teamColors[selectedTeam.id || selectedTeam.name] || { r: 168, g: 85, b: 247 }
+    : { r: 168, g: 85, b: 247 };
+  const teamRgbVars = `${selectedTeamColor.r}, ${selectedTeamColor.g}, ${selectedTeamColor.b}`;
 
   const isArgeSelected =
     !!selectedTeam && argeTeams.some((t) => t.id === selectedTeam.id);
@@ -283,18 +338,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <h2
-          className={cn(
-            "text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12",
-          )}
-        >
-          <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-            Ekiplerimiz
-          </span>
-        </h2>
+        <SectionHeader title="Ekiplerimiz" isVisible={showAnimations} />
 
         <div
           className={cn(
@@ -384,6 +428,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
                   onSelect={() => handleTeamSelect(team)}
                   onHoverStart={() => setHoveredTeam(team.id)}
                   onHoverEnd={() => setHoveredTeam(null)}
+                  teamColor={teamColors[team.id || team.name]}
                 />
               );
             })}
@@ -435,6 +480,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
                     }}
                     onHoverStart={() => setHoveredTeam(team.id)}
                     onHoverEnd={() => setHoveredTeam(null)}
+                    teamColor={teamColors[team.id || team.name]}
                   />
                 );
               }}
@@ -449,28 +495,22 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
             }
           }}
           className={cn(
-            "relative rounded-2xl md:rounded-3xl overflow-hidden group border transition-all duration-700 ease-out hover:scale-[1.01]",
+            "glass-panel relative rounded-2xl md:rounded-3xl overflow-hidden group transition-all duration-700 ease-out hover:scale-[1.01]",
             isAdmin &&
               !isArgeSelected &&
-              "cursor-pointer hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12",
+              "cursor-pointer hover:shadow-[0_0_30px_rgba(var(--c-rgb),0.15)]",
+            showAnimations ? "opacity-100" : "opacity-0",
           )}
           style={{
-            background:
-              "linear-gradient(135deg, rgba(20, 20, 40, 0.4) 0%, rgba(10, 10, 30, 0.6) 100%)",
-            borderColor: "rgba(255, 255, 255, 0.08)",
-            boxShadow:
-              "inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 12px 48px rgba(0, 0, 0, 0.3)",
+            "--c-rgb": teamRgbVars,
             transitionDelay: "400ms",
-          }}
+          } as React.CSSProperties}
         >
           <div
             className="absolute inset-0 rounded-2xl md:rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             style={{
               background:
-                "linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)",
+                "linear-gradient(135deg, rgba(var(--c-rgb), 0.2) 0%, rgba(var(--c-rgb), 0.1) 100%)",
               mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
               WebkitMask:
                 "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
@@ -488,7 +528,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
               height: "200px",
               opacity: isTransitioning ? 0.3 : 0.4,
               background:
-                "radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(var(--c-rgb), 0.35) 0%, transparent 70%)",
             }}
           />
           <div
@@ -500,10 +540,10 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
               height: "200px",
               opacity: isTransitioning ? 0.2 : 0.3,
               background:
-                "radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(var(--c-rgb), 0.35) 0%, transparent 70%)",
             }}
           />
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/8 to-transparent opacity-0 transition-all duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/8 to-transparent opacity-0 transition-all duration-1000 group-hover:translate-x-[150%] z-30" />
           <div className="absolute left-0 right-0 top-0 h-px bg-linear-to-r from-transparent via-white/20 to-transparent" />
           <div className="relative px-6 md:px-8 lg:px-10 py-8 md:py-10 lg:py-12 z-10">
             <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10 lg:gap-14">
@@ -542,7 +582,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
                         e.currentTarget.classList.remove("opacity-0")
                       }
                       style={{
-                        filter: "drop-shadow(0 0 24px rgba(168, 85, 247, 0.3))",
+                        filter: "drop-shadow(0 0 24px rgba(var(--c-rgb), 0.35))",
                       }}
                     />
                   ) : (
@@ -597,10 +637,8 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
 
         <div
           className={cn(
-            "flex justify-center mt-10 md:mt-12 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8",
+            "flex justify-center mt-10 md:mt-12 transition-opacity duration-1000 ease-out",
+            showAnimations ? "opacity-100" : "opacity-0",
           )}
           style={{ transitionDelay: "500ms" }}
         >
@@ -614,21 +652,10 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
                 "noopener,noreferrer",
               )
             }
-            className="group relative px-8 md:px-12 py-3.5 md:py-4 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer hover:scale-[1.03]"
+            className="liquid-glass group relative px-8 md:px-12 py-3.5 md:py-4 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer hover:scale-[1.03]"
             style={{
-              background: isButtonHovering
-                ? "linear-gradient(180deg, rgba(65, 35, 120, 0.7) 0%, rgba(40, 20, 80, 0.8) 100%)"
-                : "linear-gradient(180deg, rgba(45, 25, 90, 0.5) 0%, rgba(25, 15, 60, 0.6) 100%)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid",
-              borderColor: isButtonHovering
-                ? "rgba(168, 85, 247, 0.5)"
-                : "rgba(255, 255, 255, 0.12)",
-              boxShadow: isButtonHovering
-                ? "inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 16px 48px rgba(139, 92, 246, 0.35)"
-                : "inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.4)",
-            }}
+              "--c-rgb": teamRgbVars,
+            } as React.CSSProperties}
           >
             <div
               className={cn(
@@ -645,8 +672,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
             <div
               className="pointer-events-none absolute -inset-3 rounded-xl md:rounded-2xl transition-all duration-500 -z-10"
               style={{
-                background:
-                  "radial-gradient(circle at center, rgba(139, 92, 246, 0.4) 0%, transparent 70%)",
+                background: `radial-gradient(circle at center, rgba(${teamRgbVars}, 0.4) 0%, transparent 70%)`,
                 filter: "blur(20px)",
                 opacity: isButtonHovering ? 1 : 0,
               }}

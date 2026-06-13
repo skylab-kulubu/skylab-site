@@ -1,15 +1,8 @@
 "use client";
 
-import React, {
-  forwardRef,
-  useRef,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
-import { useDeviceTier, setFallbackMode } from "@/hooks/use-device-tier";
+import React, { forwardRef, useRef, useState, useCallback } from "react";
+import { useDeviceTier } from "@/hooks/use-device-tier";
 import UniverseWebGL from "./UniverseWebGL";
-import UniverseFallback from "./UniverseFallback";
 
 const SPACE_COLOR = "#05030d";
 
@@ -39,21 +32,14 @@ export const Universe = forwardRef<HTMLDivElement, UniverseProps>(
     ref
   ) => {
     const seedRef = useRef(seed ?? Math.random() * 1000);
-    const [useFallback, setUseFallback] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const [webglFailed, setWebglFailed] = useState(false);
     const tier = useDeviceTier();
 
-    useEffect(() => {
-      setMounted(true);
-    }, []);
-
     const handleWebGLError = useCallback(() => {
-      setUseFallback(true);
-      setFallbackMode(true);
+      setWebglFailed(true);
     }, []);
 
     const actualSeed = seed ?? seedRef.current;
-    const shouldUseFallback = useFallback || tier === "fallback";
 
     return (
       <div
@@ -62,26 +48,7 @@ export const Universe = forwardRef<HTMLDivElement, UniverseProps>(
         style={{ height: "100lvh", backgroundColor: SPACE_COLOR, ...style }}
         {...props}
       >
-        <UniverseWebGL
-          tier={tier}
-          speed={speed}
-          density={density}
-          frequency={frequency}
-          amplitude={amplitude}
-          seed={actualSeed}
-          starSize={starSize}
-          revealDuration={revealDuration}
-          onError={handleWebGLError}
-        />
-        {/*{!mounted ? (
-          <div className="absolute inset-0" style={{ backgroundColor: SPACE_COLOR }} />
-        ) : shouldUseFallback ? (
-          <UniverseFallback
-            seed={actualSeed}
-            starSize={starSize * 2}
-            density={density}
-          />
-        ) : (
+        {!webglFailed && (
           <UniverseWebGL
             tier={tier}
             speed={speed}
@@ -93,7 +60,7 @@ export const Universe = forwardRef<HTMLDivElement, UniverseProps>(
             revealDuration={revealDuration}
             onError={handleWebGLError}
           />
-        )}*/}
+        )}
       </div>
     );
   }

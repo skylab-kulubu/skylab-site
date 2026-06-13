@@ -20,6 +20,7 @@ interface CachedUniform {
 interface UseWebGLOptions {
   fragmentShader: string;
   uniforms: Record<string, UniformValue>;
+  onBeforeFrame?: (uniforms: Record<string, UniformValue>) => void;
   onError?: () => void;
   renderScale?: number;
   noiseSeed?: number;
@@ -111,6 +112,7 @@ function upgradeShader(src: string): string {
 export function useWebGL({
   fragmentShader,
   uniforms,
+  onBeforeFrame,
   onError,
   renderScale = 0.5,
   noiseSeed = 42,
@@ -120,6 +122,8 @@ export function useWebGL({
   const [status, setStatus] = useState<WebGLStatus>("idle");
   const uniformsRef = useRef(uniforms);
   uniformsRef.current = uniforms;
+  const onBeforeFrameRef = useRef(onBeforeFrame);
+  onBeforeFrameRef.current = onBeforeFrame;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -225,6 +229,10 @@ export function useWebGL({
       displayW = 0,
       displayH = 0;
 
+    const isTouch =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const w = Math.round(rect.width * dpr);
@@ -233,7 +241,7 @@ export function useWebGL({
       if (
         displayW > 0 &&
         w === displayW &&
-        Math.abs(h - displayH) < displayH * 0.3
+        (isTouch ? Math.abs(h - displayH) < displayH * 0.3 : h === displayH)
       ) {
         return;
       }
@@ -284,6 +292,13 @@ export function useWebGL({
 
     const render = (now: number) => {
       if (!alive) return;
+
+      if (document.hidden) {
+        raf = requestAnimationFrame(render);
+        return;
+      }
+
+      onBeforeFrameRef.current?.(uniformsRef.current);
 
       const t = (now - t0) * 0.001;
 

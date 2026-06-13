@@ -2,6 +2,7 @@
 
 import { BookOpen, Network, Users } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 
 export default function FeaturesSection() {
@@ -61,18 +62,7 @@ export default function FeaturesSection() {
       id="ozellikler"
       className="relative max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16"
     >
-      <div
-        className={cn(
-          "text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-        )}
-      >
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
-          <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-            Neler Katıyoruz?
-          </span>
-        </h2>
-      </div>
+      <SectionHeader title="Neler Katıyoruz?" isVisible={isVisible} />
 
       <div className="relative">
         <div

@@ -1,34 +1,213 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import {
-  EditableList,
-  useCmsBlock,
-  EditableRegion,
-} from "inscribed";
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpRight,
+  CalendarDays,
+} from "lucide-react";
+import { EditableList, useCmsBlock, EditableRegion } from "inscribed";
 import { useCmsContext } from "@/hooks/use-cms-context";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { useCountdown, parseEventDate } from "@/hooks/use-countdown";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { cn } from "@/lib/utils";
 import { extractDominantColor } from "@/lib/color-extractor";
 import type { RGB } from "@/lib/data/types";
 
-const eventItemSchema = {
-  id: { blockType: "Text" as const, defaultValue: "" },
-  title: { blockType: "Text" as const, defaultValue: "" },
-  slug: { blockType: "Text" as const, defaultValue: "" },
-  description: { blockType: "RichText" as const, defaultValue: "" },
-  shortDescription: { blockType: "Text" as const, defaultValue: "" },
-  image: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-  category: { blockType: "Text" as const, defaultValue: "Zirve" },
-  tags: { blockType: "Text" as const, defaultValue: "Networking" },
-  url: { blockType: "Text" as const, defaultValue: "" },
-};
-
 const defaultEvents: any[] = [];
 
 const extractionCache = new Map<string, RGB>();
+
+const eventDateFormatter = new Intl.DateTimeFormat("tr-TR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const isFeatured = (value: any) =>
+  String(value).trim().toLowerCase() === "true";
+
+function FeaturedEventSpotlight({
+  event,
+  color,
+  isVisible,
+}: {
+  event: any;
+  color: RGB;
+  isVisible: boolean;
+}) {
+  const countdown = useCountdown(event.date || null);
+  const eventDate = parseEventDate(event.date);
+
+  if (!countdown || countdown.isPast || !eventDate) return null;
+
+  const rgb = `${color.r}, ${color.g}, ${color.b}`;
+  const imgSrc =
+    typeof event.image === "string" ? event.image : event.image?.src || "";
+
+  const units: [string, number][] = [
+    ["Gün", countdown.days],
+    ["Saat", countdown.hours],
+    ["Dakika", countdown.minutes],
+    ["Saniye", countdown.seconds],
+  ];
+
+  const content = (
+    <div
+      className="liquid-glass group relative overflow-hidden rounded-3xl transition-all duration-500 hover:-translate-y-1"
+      style={
+        {
+          "--c-rgb": rgb,
+          transform: "translate3d(0, 0, 0)",
+          willChange: "transform, opacity, filter, backdrop-filter",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+        } as React.CSSProperties
+      }
+    >
+      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/6 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-20" />
+      <div className="flex flex-col md:flex-row">
+        {imgSrc && (
+          <div className="relative w-full md:w-2/5 aspect-video md:aspect-auto md:min-h-70 overflow-hidden shrink-0">
+            <Image
+              src={imgSrc}
+              alt={event.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none hidden md:block"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent 50%, rgba(10, 10, 30, 0.85) 100%)",
+              }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none md:hidden"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(10, 10, 30, 0.85) 0%, transparent 60%)",
+              }}
+            />
+          </div>
+        )}
+
+        <div className="relative z-10 flex-1 p-6 md:p-8 flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md"
+              style={{
+                background: `rgba(${rgb}, 0.2)`,
+                border: `1px solid rgba(${rgb}, 0.45)`,
+                boxShadow: `0 0 14px rgba(${rgb}, 0.2)`,
+              }}
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                <span
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: `rgb(${rgb})` }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-1.5 w-1.5"
+                  style={{ backgroundColor: `rgb(${rgb})` }}
+                />
+              </span>
+              Yaklaşan Etkinlik
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/80 border border-white/15 bg-white/5 backdrop-blur-md">
+              <CalendarDays className="w-3 h-3" />
+              {eventDateFormatter.format(eventDate)}
+            </span>
+          </div>
+
+          <h3
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight"
+            style={{ textShadow: `0 0 24px rgba(${rgb}, 0.45)` }}
+          >
+            {event.title}
+          </h3>
+
+          {event.shortDescription && (
+            <p className="text-sm md:text-base text-white/70 leading-relaxed">
+              {event.shortDescription}
+            </p>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-2">
+            <div className="flex gap-2 sm:gap-3">
+              {units.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="glass-panel rounded-xl px-2.5 py-2 sm:px-4 sm:py-3 text-center min-w-14 sm:min-w-18"
+                  style={
+                    {
+                      "--c-rgb": rgb,
+                    } as React.CSSProperties
+                  }
+                >
+                  <div className="text-xl sm:text-3xl font-black text-white tabular-nums leading-none">
+                    {String(value).padStart(2, "0")}
+                  </div>
+                  <div className="mt-1 text-[9px] sm:text-[10px] uppercase tracking-widest text-white/50 font-bold">
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {event.url && (
+              <span
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors duration-300"
+                style={{
+                  color: `rgb(${Math.min(255, color.r + 60)}, ${Math.min(255, color.g + 60)}, ${Math.min(255, color.b + 60)})`,
+                }}
+              >
+                Detaylar
+                <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px opacity-60 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent, rgba(${rgb}, 0.8), transparent)`,
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div
+      className={cn(
+        "mb-10 md:mb-14 transition-opacity duration-1000 ease-out",
+        isVisible ? "opacity-100" : "opacity-0",
+      )}
+      style={{ transitionDelay: "100ms" }}
+    >
+      {event.url ? (
+        <a
+          href={event.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block cursor-pointer"
+        >
+          {content}
+        </a>
+      ) : (
+        content
+      )}
+    </div>
+  );
+}
 
 export default function EventsSection() {
   const { isAdmin, setActiveBlock } = useCmsContext();
@@ -85,6 +264,13 @@ export default function EventsSection() {
     }
   }, [checkScroll, handleScroll, eventsList]);
 
+  const eventsImageCacheKey = eventsList
+    .map(
+      (event) =>
+        `${event.id || event.title}:${typeof event.image === "string" ? event.image : event.image?.src || ""}`,
+    )
+    .join("|");
+
   useEffect(() => {
     let isActive = true;
 
@@ -129,7 +315,7 @@ export default function EventsSection() {
     return () => {
       isActive = false;
     };
-  }, [eventsList]);
+  }, [eventsImageCacheKey]);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -142,6 +328,18 @@ export default function EventsSection() {
   };
 
   const showAnimations = isMounted && isVisible;
+
+  const featuredEvent = useMemo(() => {
+    if (!isMounted) return null;
+    const now = Date.now();
+    return (
+      eventsList.find((event) => {
+        if (!isFeatured(event.featured)) return false;
+        const dt = parseEventDate(event.date);
+        return dt !== null && dt.getTime() > now;
+      }) ?? null
+    );
+  }, [eventsList, isMounted]);
 
   const getImgSrc = (image: any) => {
     if (!image) return "";
@@ -164,36 +362,37 @@ export default function EventsSection() {
     <section
       ref={sectionRef}
       id="etkinlikler"
-      className="scroll-mt-32 relative py-12 md:py-16 overflow-hidden"
+      className="scroll-mt-32 relative py-12 md:py-16"
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <h2
-          className={cn(
-            "text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12",
-          )}
-        >
-          <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-            Etkinliklerimiz
-          </span>
-        </h2>
+        <SectionHeader title="Etkinliklerimiz" isVisible={showAnimations} />
+
+        {featuredEvent && (
+          <FeaturedEventSpotlight
+            event={featuredEvent}
+            color={
+              eventColors[featuredEvent.id || featuredEvent.title] || {
+                r: 168,
+                g: 85,
+                b: 247,
+              }
+            }
+            isVisible={showAnimations}
+          />
+        )}
 
         <div
           className={cn(
-            "relative w-full transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8",
+            "relative w-full transition-opacity duration-1000 ease-out",
+            showAnimations ? "opacity-100" : "opacity-0",
           )}
           style={{ transitionDelay: "200ms" }}
         >
           <button
             onClick={() => scroll("left")}
             aria-label="Sola kaydır"
-            className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/80 backdrop-blur-xl cursor-pointer"
+            className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/60 backdrop-blur-xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] cursor-pointer"
             style={{
               borderColor: canScrollLeft
                 ? "rgba(168, 85, 247, 0.5)"
@@ -211,7 +410,7 @@ export default function EventsSection() {
           <button
             onClick={() => scroll("right")}
             aria-label="Sağa kaydır"
-            className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/80 backdrop-blur-xl cursor-pointer"
+            className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full border transition-all duration-500 hover:scale-110 bg-[#0a0a1e]/60 backdrop-blur-xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] cursor-pointer"
             style={{
               borderColor: canScrollRight
                 ? "rgba(168, 85, 247, 0.5)"
@@ -228,7 +427,7 @@ export default function EventsSection() {
 
           <div
             ref={scrollRef}
-            className="cms-events-row flex gap-5 md:gap-6 items-stretch overflow-x-auto scroll-smooth pt-8 px-2 -mx-2 [&::-webkit-scrollbar]:hidden"
+            className="cms-events-row flex gap-5 md:gap-6 items-stretch overflow-x-auto scroll-smooth pt-10 pb-10 px-12 -mx-12 [&::-webkit-scrollbar]:hidden"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -250,6 +449,8 @@ export default function EventsSection() {
                 category: { blockType: "Text", defaultValue: "Zirve" },
                 tags: { blockType: "Text", defaultValue: "Networking" },
                 url: { blockType: "Text", defaultValue: "" },
+                date: { blockType: "Text", defaultValue: "" },
+                featured: { blockType: "Text", defaultValue: "false" },
               }}
               defaultValue={[]}
             >
@@ -265,6 +466,7 @@ export default function EventsSection() {
 
                 const categories = parseCategories(event.category);
                 const tags = parseTags(event.tags);
+                const eventDate = parseEventDate(event.date);
 
                 const containerStyle = {
                   transitionDuration: "700ms",
@@ -321,10 +523,8 @@ export default function EventsSection() {
                   <div
                     key={event.id || index}
                     className={cn(
-                      "shrink-0 transition-all ease-out",
-                      showAnimations
-                        ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-12",
+                      "shrink-0 transition-opacity ease-out",
+                      showAnimations ? "opacity-100" : "opacity-0",
                     )}
                     style={containerStyle}
                   >
@@ -335,16 +535,20 @@ export default function EventsSection() {
                         }
                       }}
                       className={cn(
-                        "group relative w-[320px] md:w-95 flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-500 ease-out hover:-translate-y-3 hover:scale-[1.02] z-10 hover:z-20 cursor-pointer",
-                        "border border-white/5 hover:border-[rgba(var(--c-rgb),0.5)]",
-                        "shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)]",
-                        "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(var(--c-rgb),0.3)]",
+                        "glass-panel group relative w-[320px] md:w-95 flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-500 ease-out hover:-translate-y-3 hover:scale-[1.02] z-10 hover:z-20 cursor-pointer",
                         isAdmin &&
-                          "hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
+                          "hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
                       )}
-                      style={cardStyle}
+                      style={{
+                        ...cardStyle,
+                        transform: "translate3d(0, 0, 0)",
+                        willChange:
+                          "transform, opacity, filter, backdrop-filter",
+                        backfaceVisibility: "hidden",
+                        WebkitBackfaceVisibility: "hidden",
+                      }}
                     >
-                      <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+                      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                       <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"
@@ -385,6 +589,15 @@ export default function EventsSection() {
                               {cat}
                             </span>
                           ))}
+                          {eventDate && (
+                            <span
+                              suppressHydrationWarning
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/80 border border-white/15 bg-white/5 backdrop-blur-md"
+                            >
+                              <CalendarDays className="w-3 h-3" />
+                              {eventDateFormatter.format(eventDate)}
+                            </span>
+                          )}
                         </div>
 
                         <div
@@ -451,34 +664,11 @@ export default function EventsSection() {
           </div>
         </div>
 
-        <div
-          className={cn(
-            "pt-12 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4",
-          )}
-          style={{ transitionDelay: "600ms" }}
-        >
-          <div
-            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
-            style={{
-              width: showAnimations ? "5rem" : "0",
-              transitionDelay: "700ms",
-            }}
-          />
-          <div
-            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
-            style={{ animationDuration: "2s" }}
-          />
-          <div
-            className="h-0.5 bg-linear-to-r from-transparent via-purple-400/50 to-transparent rounded-full transition-all duration-1000"
-            style={{
-              width: showAnimations ? "5rem" : "0",
-              transitionDelay: "700ms",
-            }}
-          />
-        </div>
+        <SectionDivider
+          isVisible={showAnimations}
+          delay={600}
+          className="pt-12"
+        />
       </div>
     </section>
   );

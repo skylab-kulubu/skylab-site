@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { useWebGL } from "@/hooks/use-webgl"
 import { UNIVERSE_SHADER_HIGH, UNIVERSE_SHADER_LOW } from "./shaders"
 import { DeviceTier } from "@/hooks/use-device-tier"
@@ -19,8 +19,8 @@ interface UniverseWebGLProps {
 
 const SCALE_MAP: Record<DeviceTier, number> = {
   high: 0.65,
-  low: 0.4,
-  fallback: 1.0,
+  low: 0.45,
+  fallback: 0.4,
 }
 
 export default function UniverseWebGL({
@@ -58,26 +58,17 @@ export default function UniverseWebGL({
     uniformsRef.current.u_revealDuration = revealDuration
   }, [speed, density, frequency, amplitude, seed, starSize, revealDuration])
 
-  useEffect(() => {
-    let rafId: number
-    let alive = true
-
-    const syncScroll = () => {
-      if (!alive) return
-      uniformsRef.current.u_scrollY = window.scrollY * renderScale
-      rafId = requestAnimationFrame(syncScroll)
-    }
-
-    rafId = requestAnimationFrame(syncScroll)
-    return () => {
-      alive = false
-      cancelAnimationFrame(rafId)
-    }
-  }, [renderScale])
+  const onBeforeFrame = useCallback(
+    (u: Record<string, number | [number, number] | [number, number, number] | [number, number, number, number]>) => {
+      u.u_scrollY = window.scrollY * renderScale
+    },
+    [renderScale]
+  )
 
   const { canvasRef, status } = useWebGL({
     fragmentShader: shader,
     uniforms: uniformsRef.current,
+    onBeforeFrame,
     onError,
     renderScale,
     noiseSeed: seed,

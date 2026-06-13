@@ -5,6 +5,31 @@ import { Twitter, Instagram, Linkedin, Youtube, Github } from "@/components/ui/B
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import FooterEmblem from "./FooterEmblem";
+import { SKYLAB_LOGO_CENTER, SKYLAB_LOGO_PATH } from "@/components/ui/skylab-logo-path";
+
+const EMBLEM_SIZE = 176;
+const VB_PAD = 60;
+const SCALE = EMBLEM_SIZE / 600;
+const NOTCH_STROKE = 60;
+const RIM_WIDTH = 9;
+const VB_W = 600 + 2 * VB_PAD;
+const VB_X = SKYLAB_LOGO_CENTER.x - 300 - VB_PAD;
+const VB_Y = SKYLAB_LOGO_CENTER.y - 280 - VB_PAD;
+const RIM_H = 280 + VB_PAD;
+const MASK_W = VB_W * SCALE;
+const MASK_H = (560 + 2 * VB_PAD) * SCALE;
+const MASK_TOP = -(280 + VB_PAD) * SCALE;
+const EMBLEM_MASK_SVG = encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='${VB_X} ${VB_Y} ${VB_W} ${560 + 2 * VB_PAD}'><path d='${SKYLAB_LOGO_PATH}' fill='black' stroke='black' stroke-width='${NOTCH_STROKE}' stroke-linejoin='round' stroke-linecap='round'/></svg>`
+);
+const notchMask: React.CSSProperties = {
+  maskImage: `linear-gradient(#000,#000), url("data:image/svg+xml,${EMBLEM_MASK_SVG}")`,
+  maskSize: `100% 100%, ${MASK_W}px ${MASK_H}px`,
+  maskPosition: `0 0, 50% ${MASK_TOP}px`,
+  maskRepeat: "no-repeat",
+  maskComposite: "subtract",
+};
 
 export default function Footer() {
   const { ref: footerRef, isVisible } = useScrollReveal(0.1);
@@ -15,41 +40,31 @@ export default function Footer() {
       name: "X (Twitter)",
       icon: Twitter,
       href: "https://x.com/skylabkulubu",
-      hoverBg: "hover:bg-indigo-500/10",
-      hoverBorder: "hover:border-indigo-400/50",
-      hoverText: "group-hover:text-indigo-400",
+      rgb: "129, 140, 248",
     },
     {
       name: "Instagram",
       icon: Instagram,
       href: "https://www.instagram.com/ytuskylab",
-      hoverBg: "hover:bg-pink-500/10",
-      hoverBorder: "hover:border-pink-400/50",
-      hoverText: "group-hover:text-pink-400",
+      rgb: "244, 114, 182",
     },
     {
       name: "YouTube",
       icon: Youtube,
       href: "https://www.youtube.com/channel/UCF_qBKpUnM3X_C3L-gLEO4A",
-      hoverBg: "hover:bg-red-500/10",
-      hoverBorder: "hover:border-red-400/50",
-      hoverText: "group-hover:text-red-400",
+      rgb: "248, 113, 113",
     },
     {
       name: "LinkedIn",
       icon: Linkedin,
       href: "https://www.linkedin.com/company/ytuskylab/",
-      hoverBg: "hover:bg-blue-500/10",
-      hoverBorder: "hover:border-blue-400/50",
-      hoverText: "group-hover:text-blue-400",
+      rgb: "96, 165, 250",
     },
     {
       name: "GitHub",
       icon: Github,
       href: "https://github.com/skylab-kulubu",
-      hoverBg: "hover:bg-purple-500/10",
-      hoverBorder: "hover:border-purple-400/50",
-      hoverText: "group-hover:text-purple-400",
+      rgb: "192, 132, 252",
     },
   ];
 
@@ -77,29 +92,70 @@ export default function Footer() {
   };
 
   return (
-    <footer
-      ref={footerRef}
-      className="relative w-full bg-slate-900/40 backdrop-blur-2xl border-t border-white/10 overflow-hidden"
-    >
+    <div className="relative">
+      <FooterEmblem />
+      <svg
+        aria-hidden="true"
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
+        width={MASK_W}
+        height={RIM_H * SCALE}
+        viewBox={`${VB_X} ${SKYLAB_LOGO_CENTER.y} ${VB_W} ${RIM_H}`}
+      >
+        <defs>
+          <mask
+            id="notchRim"
+            maskUnits="userSpaceOnUse"
+            x={VB_X}
+            y={SKYLAB_LOGO_CENTER.y}
+            width={VB_W}
+            height={RIM_H}
+          >
+            <rect
+              x={VB_X}
+              y={SKYLAB_LOGO_CENTER.y}
+              width={VB_W}
+              height={RIM_H}
+              fill="white"
+            />
+            <path
+              d={SKYLAB_LOGO_PATH}
+              fill="black"
+              stroke="black"
+              strokeWidth={NOTCH_STROKE}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </mask>
+        </defs>
+        <path
+          d={SKYLAB_LOGO_PATH}
+          fill="none"
+          stroke="rgba(113,118,246,0.55)"
+          strokeWidth={NOTCH_STROKE + RIM_WIDTH}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          mask="url(#notchRim)"
+        />
+      </svg>
+      <footer
+        ref={footerRef}
+        style={{
+          ...notchMask,
+          background:
+            "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 45%, rgba(255, 255, 255, 0.01) 60%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 14, 34, 0.28)",
+          borderTop: "1px solid rgba(255, 255, 255, 0.18)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        }}
+        className="relative w-full overflow-hidden"
+      >
       <div
         className={cn(
           "absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent transition-all duration-1000",
           isVisible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
         )}
       />
-      <div
-        className={cn(
-          "absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 pointer-events-none transition-all duration-1500",
-          isVisible ? "opacity-100" : "opacity-0",
-        )}
-        style={{
-          background:
-            "radial-gradient(ellipse at center top, rgba(99, 102, 241, 0.08) 0%, transparent 70%)",
-          transitionDelay: "200ms",
-        }}
-      />
-
-      <div className="relative max-w-7xl mx-auto py-16 px-4 md:px-8">
+      <div className="relative max-w-7xl mx-auto pt-28 pb-16 px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-slate-300">
           <div
             className={cn(
@@ -109,17 +165,13 @@ export default function Footer() {
                 : "opacity-0 translate-y-8",
             )}
           >
-            <div className="h-16 flex items-center overflow-hidden">
-              <Image
-                src="/img/skylab-text-logo.svg"
-                alt="Sky Lab"
-                width={160}
-                height={64}
-                className="h-16 w-auto object-contain"
-                style={{ width: "auto", height: "auto" }}
-                priority={false}
-                loading="lazy"
-              />
+            <div className="h-16 flex flex-col justify-center">
+              <span className="text-2xl font-bold tracking-[0.2em] text-white">
+                SKY LAB
+              </span>
+              <span className="text-sm text-slate-400 mt-1">
+                Bilgisayar Bilimleri Kulübü
+              </span>
             </div>
             <p
               className={cn(
@@ -205,10 +257,8 @@ export default function Footer() {
 
           <div
             className={cn(
-              "flex flex-col items-start lg:items-end justify-start transition-all duration-700 ease-out",
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8",
+              "flex flex-col items-start lg:items-end justify-start transition-opacity duration-700 ease-out",
+              isVisible ? "opacity-100" : "opacity-0",
             )}
             style={{ transitionDelay: "250ms" }}
           >
@@ -236,34 +286,38 @@ export default function Footer() {
                     onMouseEnter={() => setHoveredSocial(social.name)}
                     onMouseLeave={() => setHoveredSocial(null)}
                     className={cn(
-                      "group relative w-11 h-11 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 overflow-hidden",
-                      social.hoverBg,
-                      social.hoverBorder,
+                      "group relative w-11 h-11 rounded-xl bg-white/[0.06] backdrop-blur-xl backdrop-saturate-150 border flex items-center justify-center transition-all duration-300 overflow-hidden hover:scale-110 hover:-translate-y-0.5",
                       isVisible
                         ? "opacity-100 scale-100"
                         : "opacity-0 scale-75",
                     )}
-                    style={{ transitionDelay: `${400 + index * 60}ms` }}
+                    style={{
+                      transitionDelay: `${400 + index * 60}ms`,
+                      borderColor: isHovered
+                        ? `rgba(${social.rgb}, 0.55)`
+                        : "rgba(255, 255, 255, 0.1)",
+                      boxShadow: isHovered
+                        ? `inset 0 1px 0 rgba(255,255,255,0.2), 0 6px 20px rgba(${social.rgb}, 0.35)`
+                        : "inset 0 1px 0 rgba(255,255,255,0.12)",
+                    }}
                     aria-label={social.name}
                   >
                     <div
-                      className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent transition-opacity duration-300"
-                      style={{ opacity: isHovered ? 1 : 0 }}
+                      className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
+                      style={{
+                        background: `radial-gradient(circle at 50% 50%, rgba(${social.rgb}, 0.5) 0%, rgba(${social.rgb}, 0.12) 55%, transparent 80%)`,
+                        opacity: isHovered ? 1 : 0,
+                      }}
                     />
                     <Icon
                       className={cn(
-                        "w-5 h-5 text-slate-400 transition-all duration-300 relative z-10",
-                        social.hoverText,
-                        isHovered && "scale-110",
+                        "w-5 h-5 transition-all duration-300 relative z-10",
+                        isHovered ? "text-white scale-110" : "text-slate-400",
                       )}
-                    />
-                    <div
-                      className="absolute inset-0 rounded-xl transition-all duration-500"
                       style={{
-                        background:
-                          "radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%)",
-                        transform: isHovered ? "scale(1.5)" : "scale(0)",
-                        opacity: isHovered ? 0 : 1,
+                        filter: isHovered
+                          ? `drop-shadow(0 0 8px rgba(${social.rgb}, 0.9))`
+                          : "none",
                       }}
                     />
                   </a>
@@ -349,6 +403,7 @@ export default function Footer() {
           transitionDelay: "400ms",
         }}
       />
-    </footer>
+      </footer>
+    </div>
   );
 }

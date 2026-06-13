@@ -62,8 +62,39 @@ vec3 starField(vec2 fragCoord, float seed, float time, float density, float star
     vec3 haloCol = mix(starCol, nebCol + 0.3, nebDen * 0.6);
 
     col += starCol * star + haloCol * halo;
+
+    if (layer < 0.5 && h > 0.82) {
+      float sx = dv.x * dv.x;
+      float sy = dv.y * dv.y;
+      float spike = smoothstep(r2 * 30.0, 0.0, sx) * smoothstep(r2 * 3.5, 0.0, sy)
+                  + smoothstep(r2 * 30.0, 0.0, sy) * smoothstep(r2 * 3.5, 0.0, sx);
+      col += starCol * spike * 0.16 * twinkle * vis;
+    }
   }
   return col;
+}
+
+vec3 galaxyField(vec2 coord, float seed) {
+  vec2 grid = coord / 480.0;
+  vec2 id = floor(grid);
+  vec2 gv = fract(grid) - 0.5;
+  float h = hash21(id + seed * 0.37);
+  if (h < 0.86) return vec3(0.0);
+
+  vec2 offset = (vec2(hash21(id + 11.3), hash21(id + 27.7)) - 0.5) * 0.55;
+  vec2 d = gv - offset;
+  float ang = hash21(id + 5.1) * 6.28318;
+  float ca = cos(ang), sa = sin(ang);
+  d = mat2(ca, -sa, sa, ca) * d;
+  d.y *= 2.4 + hash21(id + 9.2) * 2.2;
+  float r2 = dot(d, d) * (30.0 + (h - 0.86) * 420.0);
+
+  float core = exp(-r2 * 9.0);
+  float disk = exp(-r2 * 2.1);
+  float tint = hash21(id + 3.3);
+  vec3 gcol = tint < 0.35 ? vec3(0.72, 0.58, 0.92) :
+              tint < 0.7  ? vec3(0.55, 0.68, 0.95) : vec3(0.95, 0.82, 0.66);
+  return gcol * (core * 0.38 + disk * 0.13);
 }
 
 void main() {
@@ -89,21 +120,24 @@ void main() {
 
   vec2 q = vec2(fbm4(p + time * 0.3), fbm4(p + 5.0));
   vec2 r = vec2(fbm3(p + 4.0 * q + time * 0.5), fbm3(p + 4.0 * q + 8.0));
+  vec2 w = vec2(fbm3(p * 1.3 + 3.0 * r + time * 0.2), fbm3(p * 1.3 + 3.0 * r + 21.0));
 
   vec2 pr = p + 5.0 * r * u_frequency;
-  float f1 = smoothstep(0.2, 0.8, fbm4(pr));
-  float f2 = smoothstep(0.3, 0.85, fbm3(p * 1.5 + 3.0 * r * u_frequency));
-  float f3 = smoothstep(0.4, 0.9, fbm3(p * 2.5 + 2.0 * r * u_frequency));
+  float f1 = smoothstep(0.24, 0.78, fbm4(pr));
+  float f2 = smoothstep(0.34, 0.82, fbm3(p * 1.5 + 3.0 * r * u_frequency + w * 0.8));
+  float f3 = smoothstep(0.44, 0.88, fbm3(p * 2.5 + 2.0 * r * u_frequency + w * 1.2));
 
   float nebulaDensity = f1 * f1 * 0.8 + f2 * f2 * 0.5 + f3 * f3 * f3 * 0.3;
   nebulaDensity = clamp(nebulaDensity * u_amplitude * 1.5, 0.0, 1.0);
 
   float dustLane = fbm3(p * 4.0 + r * 2.0 + seed);
   float dustMask = smoothstep(0.35, 0.5, dustLane) * smoothstep(0.65, 0.5, dustLane);
-  nebulaDensity *= 1.0 - dustMask * 0.4;
+  nebulaDensity *= 1.0 - dustMask * 0.55;
 
-  float filament = abs(fbm3(p * 6.0 + r * 3.0) - 0.5);
-  filament = smoothstep(0.05, 0.0, filament) * 0.3;
+  float ridge1 = abs(fbm3(p * 6.0 + r * 3.0) - 0.5);
+  float ridge2 = abs(fbm3(p * 3.2 + r * 4.5 + w * 2.0 + 13.7) - 0.5);
+  float filament = smoothstep(0.05, 0.0, ridge1) * 0.3;
+  float tendril = smoothstep(0.04, 0.0, ridge2);
   nebulaDensity = clamp(nebulaDensity + filament * nebulaDensity, 0.0, 1.0);
 
   nebulaDensity *= spatialFade;
@@ -140,10 +174,16 @@ void main() {
   nebula = mix(nebula, blue, blueZone * nebulaDensity);
 
   float d2core = nebulaDensity * nebulaDensity;
-  float coreBrightness = d2core * nebulaDensity * 0.5 * 0.25;
-  nebula += vec3(1.0, 0.92, 0.85) * coreBrightness * (purpleZone + pinkZone * 0.8);
+  float coreBrightness = d2core * d2core * 0.25;
+  nebula += vec3(1.0, 0.9, 0.88) * coreBrightness * (purpleZone + pinkZone * 0.9);
 
-  nebula = mix(c_space, nebula, 0.7 + nebulaDensity * 0.8);
+  float warmZone = smoothstep(0.55, 0.8, fbm3(p * 1.1 + seed * 1.7 + 42.0));
+  nebula = mix(nebula, vec3(0.95, 0.55, 0.3), warmZone * pinkZone * d2core * 0.35);
+
+  float tendrilGlow = tendril * nebulaDensity * (0.45 + 0.55 * pinkZone);
+  nebula += vec3(0.92, 0.7, 1.0) * tendrilGlow * 0.35;
+
+  nebula = mix(c_space, nebula, min(0.7 + nebulaDensity * 0.8, 1.1));
 
   float glowReveal = smoothstep(0.0, 0.6, reveal);
   vec2 g1 = screenP - vec2(0.25, 0.1);
@@ -167,11 +207,25 @@ void main() {
 
   nebula = mix(spaceBg, nebula, spatialFade);
 
+  float luma = dot(nebula, vec3(0.299, 0.587, 0.114));
+  nebula = mix(vec3(luma) * vec3(0.92, 0.86, 1.06), nebula, 1.16);
+
+  vec3 overN = max(nebula - vec3(0.62), vec3(0.0));
+  nebula = nebula - overN + overN / (1.0 + overN * 2.8);
+
+  float uiGuard = 1.0 - smoothstep(0.8, 1.0, uv.y) * 0.4;
+  nebula *= uiGuard;
+
   vec2 starCoord = fragCoord - vec2(0.0, u_scrollY * 0.5);
   vec3 stars = starField(starCoord, seed, iTime, u_density, u_starSize, nebula, nebulaDensity);
   stars *= (1.0 - nebulaDensity * 0.5);
 
-  vec3 col = nebula + stars;
+  vec2 galCoord = fragCoord - vec2(0.0, u_scrollY * 0.35);
+  float deep = smoothstep(viewH * 0.7, viewH * 1.5, domY);
+  vec3 galaxies = galaxyField(galCoord, seed) * deep * (1.0 - nebulaDensity * 0.8);
+
+  vec3 col = nebula + stars + galaxies;
+
   vec2 vc = uv - 0.5;
   float vignette = 1.0 - smoothstep(0.36, 1.69, dot(vc, vc));
   col *= 0.92 + vignette * 0.08;
@@ -210,6 +264,29 @@ float fbm_safe(vec2 p) {
     n += tnoise(p * 2.1 + 15.4) * 0.25;
     n += tnoise(p * 4.2 + 37.1) * 0.125;
     return n;
+}
+
+vec3 galaxyField(vec2 coord, float seed) {
+    vec2 grid = coord / 480.0;
+    vec2 id = floor(grid);
+    vec2 gv = fract(grid) - 0.5;
+    float h = hash21(id + seed * 0.37);
+    if (h < 0.86) return vec3(0.0);
+
+    vec2 offset = (vec2(hash21(id + 11.3), hash21(id + 27.7)) - 0.5) * 0.55;
+    vec2 d = gv - offset;
+    float ang = hash21(id + 5.1) * 6.28318;
+    float ca = cos(ang), sa = sin(ang);
+    d = mat2(ca, -sa, sa, ca) * d;
+    d.y *= 2.4 + hash21(id + 9.2) * 2.2;
+    float r2 = dot(d, d) * (30.0 + (h - 0.86) * 420.0);
+
+    float core = exp(-r2 * 9.0);
+    float disk = exp(-r2 * 2.1);
+    float tint = hash21(id + 3.3);
+    vec3 gcol = tint < 0.35 ? vec3(0.72, 0.58, 0.92) :
+                tint < 0.7  ? vec3(0.55, 0.68, 0.95) : vec3(0.95, 0.82, 0.66);
+    return gcol * (core * 0.38 + disk * 0.13);
 }
 
 void main() {
@@ -256,7 +333,11 @@ void main() {
     nebulaCol = mix(nebulaCol, purple, purpleZone * nebulaDensity * 1.1);
     nebulaCol = mix(nebulaCol, pink, pinkZone * nebulaDensity * 1.0);
     nebulaCol = mix(nebulaCol, blue, blueZone * nebulaDensity * 0.9);
-    nebulaCol += vec3(1.0, 0.92, 0.85) * pow(nebulaDensity, 3.5) * 0.12;
+    nebulaCol += vec3(1.0, 0.92, 0.85) * pow(nebulaDensity, 3.5) * 0.18;
+
+    float ridge = abs(fbm_safe(p * 3.0 + 2.5 * r + s) - 0.5);
+    float tendril = smoothstep(0.045, 0.0, ridge);
+    nebulaCol += vec3(0.92, 0.7, 1.0) * tendril * nebulaDensity * 0.4;
 
     vec2 starCoord = fragCoord - vec2(0.0, u_scrollY * 0.48);
     float gridScale = 38.0 / u_density; 
@@ -290,6 +371,21 @@ void main() {
         }
     }
 
-    outColor = vec4(nebulaCol + starLayer, 1.0);
+    float luma = dot(nebulaCol, vec3(0.299, 0.587, 0.114));
+    nebulaCol = mix(vec3(luma) * vec3(0.92, 0.86, 1.06), nebulaCol, 1.16);
+
+    vec3 overN = max(nebulaCol - vec3(0.62), vec3(0.0));
+    nebulaCol = nebulaCol - overN + overN / (1.0 + overN * 2.8);
+
+    float uiGuard = 1.0 - smoothstep(0.8, 1.0, fragCoord.y / iResolution.y) * 0.4;
+    nebulaCol *= uiGuard;
+
+    vec2 galCoord = fragCoord - vec2(0.0, u_scrollY * 0.35);
+    float deep = smoothstep(viewH * 0.7, viewH * 1.5, domY);
+    vec3 galaxies = galaxyField(galCoord, u_seed) * deep * (1.0 - nebulaDensity * 0.8);
+
+    vec3 col = nebulaCol + starLayer + galaxies;
+
+    outColor = vec4(col, 1.0);
 }
 `;

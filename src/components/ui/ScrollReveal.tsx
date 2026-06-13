@@ -10,7 +10,6 @@ export const ScrollReveal = () => {
   const prefersReducedMotion = useReducedMotion();
 
   const scrollOpacity = useTransform(scrollY, [0, 450], [1, 0]);
-  const scrollTranslateY = useTransform(scrollY, [0, 450], [0, 40]);
   const pointerEvents = useTransform(scrollY, (v) =>
     v > 400 ? "none" : "auto"
   );
@@ -25,7 +24,6 @@ export const ScrollReveal = () => {
     <motion.div
       style={{
         opacity: scrollOpacity,
-        y: scrollTranslateY,
         pointerEvents,
       }}
       className="flex flex-col items-center gap-5 cursor-pointer group"
@@ -58,7 +56,7 @@ export const ScrollReveal = () => {
           }
           className={cn(
             "relative p-4 rounded-full transition-all duration-700",
-            "bg-white/3 backdrop-blur-xl border border-white/10",
+            "bg-white/3 backdrop-blur-xl backdrop-saturate-150 border border-white/10",
             "shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.05)]",
             "group-hover:scale-110 group-hover:border-purple-500/40 group-hover:shadow-[0_0_40px_rgba(168,85,247,0.3)]"
           )}

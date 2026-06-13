@@ -14,8 +14,8 @@ export function GlassCard({
 }: GlassCardProps) {
   const variants = {
     default: "",
-    glass: "bg-white/10 backdrop-blur-md border-white/20",
-    glassDark: "bg-black/20 backdrop-blur-lg border-white/10",
+    glass: "glass-panel",
+    glassDark: "glass-panel-dark",
   };
 
   return <Card className={cn(variants[variant], className)}>{children}</Card>;
