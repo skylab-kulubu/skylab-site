@@ -31,16 +31,17 @@ export function StatsCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden transition-all duration-500 hover:scale-[1.03]",
-        "border-white/10 hover:border-purple-500/40",
+        "group relative overflow-hidden rounded-xl border transition-all duration-500 hover:scale-[1.03]",
         className
       )}
       style={{
+        "--c-rgb": "168, 85, 247",
         background:
-          "linear-gradient(135deg, rgba(20, 20, 40, 0.6) 0%, rgba(10, 10, 30, 0.8) 100%)",
+          "linear-gradient(135deg, rgba(38, 33, 72, 0.5) 0%, rgba(16, 14, 42, 0.62) 100%)",
+        borderColor: "rgba(255, 255, 255, 0.1)",
         boxShadow:
-          "inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.4)",
-      }}
+          "inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.3)",
+      } as React.CSSProperties}
     >
       <div
         className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-500 group-hover:opacity-100"

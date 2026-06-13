@@ -348,18 +348,13 @@ export default function StatsCards({
     [0, fadeEnd],
     prefersReducedMotion ? [1, 1] : [1, 0],
   );
-  const translateY = useTransform(
-    scrollY,
-    [0, fadeEnd],
-    prefersReducedMotion ? [0, 0] : [0, -20],
-  );
   const pointerEvents = useTransform(scrollY, (v) =>
     v > fadeEnd - 50 ? "none" : "auto",
   );
 
   return (
     <motion.div
-      style={{ opacity, y: translateY, pointerEvents }}
+      style={{ opacity, pointerEvents }}
       className="relative z-30 w-full"
     >
       <div ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8">
@@ -401,7 +396,7 @@ export default function StatsCards({
                       "cursor-pointer hover:ring-2 hover:ring-purple-400/50 rounded-xl",
                     isVisible
                       ? "opacity-100 translate-y-0 scale-100"
-                      : "opacity-0 translate-y-16 scale-95",
+                      : "opacity-0 translate-y-8 scale-95",
                   )}
                   style={containerStyle}
                 >

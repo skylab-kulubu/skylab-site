@@ -1,6 +1,7 @@
 "use client";
 
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 import { cn } from "@/lib/utils";
 
 export default function IntroductionSection() {
@@ -44,35 +45,7 @@ export default function IntroductionSection() {
         dinamik ve etkin kulüplerden biridir.
       </p>
 
-      <div
-        className={cn(
-          "pt-4 flex items-center justify-center gap-2 transition-all duration-1000 ease-out",
-          isVisible ? "opacity-100 scale-100" : "opacity-0 scale-75"
-        )}
-        style={{ transitionDelay: "450ms" }}
-      >
-        <div
-          className="h-0.5 bg-linear-to-r from-transparent via-purple-400/60 to-transparent rounded-full transition-all duration-1000"
-          style={{
-            width: isVisible ? "5rem" : "0",
-            transitionDelay: "500ms",
-          }}
-        />
-        <div
-          className={cn(
-            "h-1.5 w-1.5 rounded-full bg-purple-400/50 transition-all duration-500",
-            isVisible ? "animate-pulse scale-100" : "scale-0"
-          )}
-          style={{ transitionDelay: "600ms" }}
-        />
-        <div
-          className="h-0.5 bg-linear-to-r from-transparent via-purple-400/60 to-transparent rounded-full transition-all duration-1000"
-          style={{
-            width: isVisible ? "5rem" : "0",
-            transitionDelay: "500ms",
-          }}
-        />
-      </div>
+      <SectionDivider isVisible={isVisible} delay={450} className="pt-4" />
     </section>
   );
 }

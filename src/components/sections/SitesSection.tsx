@@ -3,13 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { ExternalLink, Star } from "lucide-react";
-import {
-  EditableList,
-  useCmsBlock,
-  EditableRegion,
-} from "inscribed";
+import { EditableList, useCmsBlock, EditableRegion } from "inscribed";
 import { useCmsContext } from "@/hooks/use-cms-context";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
 import { extractDominantColor } from "@/lib/color-extractor";
 import type { RGB } from "@/lib/data/types";
@@ -56,6 +53,13 @@ export default function SitesSection() {
     setIsMounted(true);
   }, []);
 
+  const sitesImageCacheKey = sortedSites
+    .map(
+      (site) =>
+        `${site.id || site.title}:${typeof site.image === "string" ? site.image : site.image?.src || ""}`,
+    )
+    .join("|");
+
   useEffect(() => {
     let isActive = true;
 
@@ -98,7 +102,7 @@ export default function SitesSection() {
     return () => {
       isActive = false;
     };
-  }, [sortedSites]);
+  }, [sitesImageCacheKey]);
 
   const showAnimations = isMounted && isVisible;
 
@@ -111,22 +115,11 @@ export default function SitesSection() {
     <section
       ref={sectionRef}
       id="siteler"
-      className="scroll-mt-32 relative py-12 md:py-16 overflow-hidden"
+      className="scroll-mt-32 relative py-12 md:py-16"
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <h2
-          className={cn(
-            "text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16 transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12",
-          )}
-        >
-          <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-            Sitelerimiz
-          </span>
-        </h2>
+        <SectionHeader title="Sitelerimiz" isVisible={showAnimations} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 auto-rows-fr">
           <EditableList
@@ -200,10 +193,8 @@ export default function SitesSection() {
                 <div
                   key={site.id || index}
                   className={cn(
-                    "h-full transition-all duration-1000 ease-out",
-                    showAnimations
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-12",
+                    "h-full transition-opacity duration-1000 ease-out",
+                    showAnimations ? "opacity-100" : "opacity-0",
                   )}
                   style={{ transitionDelay: `${index * 80}ms` }}
                 >
@@ -218,16 +209,19 @@ export default function SitesSection() {
                       }
                     }}
                     className={cn(
-                      "group relative flex flex-col justify-center rounded-2xl overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02] z-10 hover:z-20 h-full",
-                      "bg-white/3 backdrop-blur-xl border border-white/10 hover:border-[rgba(var(--c-rgb),0.5)]",
-                      "shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)]",
-                      "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(var(--c-rgb),0.3)]",
+                      "glass-panel group relative flex flex-col justify-center rounded-2xl overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02] z-10 hover:z-20 h-full",
                       isAdmin &&
-                        "cursor-pointer hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
+                        "cursor-pointer hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
                     )}
-                    style={cardStyle}
+                    style={{
+                      ...cardStyle,
+                      transform: "translate3d(0, 0, 0)",
+                      willChange: "transform, opacity, filter, backdrop-filter",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                    }}
                   >
-                    <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+                    <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"
@@ -236,7 +230,7 @@ export default function SitesSection() {
 
                     {isFeatured && (
                       <div
-                        className="absolute top-4 right-4 z-40 p-2 rounded-full backdrop-blur-md transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 shadow-lg"
+                        className="absolute top-4 right-4 z-40 p-2 rounded-full backdrop-blur-md backdrop-saturate-150 transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 shadow-lg"
                         style={badgeStyle}
                       >
                         <Star className="w-4 h-4 text-white fill-white drop-shadow-md" />

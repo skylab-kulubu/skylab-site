@@ -9,12 +9,6 @@ export function useDeviceTier(): DeviceTier {
 
   useEffect(() => {
     try {
-      if (localStorage.getItem("webgl_fallback") === "true") {
-        return;
-      }
-    } catch {}
-
-    try {
       const canvas = document.createElement("canvas");
       const gl = canvas.getContext("webgl2");
 
@@ -28,7 +22,7 @@ export function useDeviceTier(): DeviceTier {
         );
 
       if (isMobile) {
-        setTier("fallback");
+        setTier("low");
         return;
       }
 
@@ -50,24 +44,10 @@ export function useDeviceTier(): DeviceTier {
       }
 
       setTier("high");
-    } catch (e) {
+    } catch {
       setTier("fallback");
     }
   }, []);
 
   return tier;
-}
-
-export function setFallbackMode(enabled: boolean) {
-  try {
-    if (enabled) localStorage.setItem("webgl_fallback", "true");
-    else localStorage.removeItem("webgl_fallback");
-  } catch {}
-}
-
-export function clearFallbackMode() {
-  try {
-    localStorage.removeItem("webgl_fallback");
-    window.location.reload();
-  } catch {}
 }

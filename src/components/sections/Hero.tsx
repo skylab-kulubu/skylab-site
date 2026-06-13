@@ -9,7 +9,6 @@ const Hero = () => {
   const prefersReducedMotion = useReducedMotion();
 
   const opacity = useTransform(scrollY, [0, 350], prefersReducedMotion ? [1, 1] : [1, 0]);
-  const translateY = useTransform(scrollY, [0, 350], prefersReducedMotion ? [0, 0] : [0, -40]);
   const pointerEvents = useTransform(scrollY, (v) =>
     v > 300 ? "none" : "auto"
   );
@@ -23,16 +22,31 @@ const Hero = () => {
 
   return (
     <motion.div
-      style={{ opacity, y: translateY, pointerEvents }}
+      style={{ opacity, pointerEvents }}
       className="relative flex flex-col items-center justify-center text-center px-6 sm:px-4 min-h-[35svh] w-full overflow-visible"
     >
       <div className="absolute inset-0 pointer-events-none select-none overflow-visible">
-        <div className="absolute inset-[-50%] transition-opacity duration-1000 ease-in-out" />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[130%]"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(5, 3, 13, 0.4) 0%, rgba(5, 3, 13, 0.18) 45%, transparent 72%)",
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3/5 h-1/2 rounded-full blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(99, 102, 241, 0.06) 45%, transparent 70%)",
+            opacity: mounted ? 1 : 0,
+            transition: "opacity 1.6s ease 0.9s",
+          }}
+        />
       </div>
 
       <div className="flex flex-col items-center space-y-6 sm:space-y-8 select-none relative z-10 w-full max-w-4xl">
         <div
-          className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-white/20 bg-white/5 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+          className="liquid-glass px-3 sm:px-4 py-1 sm:py-1.5 rounded-full"
           style={{
             opacity: mounted ? 1 : 0,
             transform: mounted

@@ -28,7 +28,7 @@ export default function Home() {
       />
       <Header />
       <CmsPage slug="/">
-        <div className="min-h-screen bg-transparent">
+        <div className="min-h-screen bg-transparent overflow-x-clip">
           <main className="relative z-10 w-full">
             <section
               id="home"

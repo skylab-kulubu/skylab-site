@@ -2,19 +2,20 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { Linkedin, Github, Twitter, Instagram } from "@/components/ui/BrandIcons";
-import {
-  EditableList,
-  useCmsBlock,
-  EditableRegion,
-} from "inscribed";
+  Linkedin,
+  Github,
+  Twitter,
+  Instagram,
+} from "@/components/ui/BrandIcons";
+import { EditableList, useCmsBlock, EditableRegion } from "inscribed";
 import { useCmsContext } from "@/hooks/use-cms-context";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
+import { extractDominantColor } from "@/lib/color-extractor";
+import type { RGB } from "@/lib/data/types";
 
 const boardMemberSchema = {
   id: { blockType: "Text" as const, defaultValue: "" },
@@ -30,6 +31,13 @@ const boardMemberSchema = {
 const defaultManagement: any[] = [];
 
 const defaultSupervision: any[] = [];
+
+const extractionCache = new Map<string, RGB>();
+
+const getImgSrc = (image: any) => {
+  if (!image) return "";
+  return typeof image === "string" ? image : image.src || "";
+};
 
 export default function BoardSection() {
   const { isAdmin, setActiveBlock } = useCmsContext();
@@ -64,6 +72,51 @@ export default function BoardSection() {
 
   const currentMembers =
     selectedBoard === "management" ? managementList : supervisionList;
+
+  const [boardColors, setBoardColors] = useState<Record<string, RGB>>({});
+
+  const boardImageCacheKey = [...managementList, ...supervisionList]
+    .map(
+      (member) =>
+        `${member.id || member.name}:${getImgSrc(member.image) || ""}`,
+    )
+    .join("|");
+
+  useEffect(() => {
+    let isActive = true;
+    const loadColors = async () => {
+      const newColors: Record<string, RGB> = {};
+      const allMembers = [...managementList, ...supervisionList];
+      await Promise.all(
+        allMembers.map(async (member) => {
+          const key = member.id || member.name;
+          const imgSrc = getImgSrc(member.image);
+          if (!imgSrc) {
+            newColors[key] = { r: 139, g: 92, b: 246 };
+            return;
+          }
+          if (extractionCache.has(imgSrc)) {
+            newColors[key] = extractionCache.get(imgSrc)!;
+            return;
+          }
+          try {
+            const color = await extractDominantColor(imgSrc);
+            extractionCache.set(imgSrc, color);
+            newColors[key] = color;
+          } catch {
+            newColors[key] = { r: 139, g: 92, b: 246 };
+          }
+        }),
+      );
+      if (isActive) {
+        setBoardColors(newColors);
+      }
+    };
+    loadColors();
+    return () => {
+      isActive = false;
+    };
+  }, [boardImageCacheKey]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -127,33 +180,15 @@ export default function BoardSection() {
 
   const showAnimations = isMounted && isVisible;
 
-  const getImgSrc = (image: any) => {
-    if (!image) return "";
-    return typeof image === "string" ? image : image.src || "";
-  };
-
   return (
     <section
       ref={sectionRef}
       id="kurul"
-      className="scroll-mt-32 relative py-12 md:py-16 overflow-hidden"
+      className="scroll-mt-32 relative py-12 md:py-16"
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div
-          className={cn(
-            "transition-all duration-1000 ease-out",
-            showAnimations
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-12",
-          )}
-        >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16">
-            <span className="bg-linear-to-r from-white via-purple-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-              Kurullarımız
-            </span>
-          </h2>
-        </div>
+        <SectionHeader title="Kurullarımız" isVisible={showAnimations} />
 
         <div
           className={cn(
@@ -284,7 +319,7 @@ export default function BoardSection() {
 
           <div
             ref={scrollRef}
-            className="flex gap-5 md:gap-8 overflow-x-auto scroll-smooth pb-12 pt-8 px-2 -mx-2 scrollbar-hide"
+            className="flex gap-5 md:gap-8 overflow-x-auto scroll-smooth pb-12 pt-8 px-12 -mx-12 scrollbar-hide"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -321,6 +356,13 @@ export default function BoardSection() {
                     },
                   ].filter((link) => link.url);
 
+                  const color = boardColors[member.id || member.name] || {
+                    r: 139,
+                    g: 92,
+                    b: 246,
+                  };
+                  const rgbVars = `${color.r}, ${color.g}, ${color.b}`;
+
                   return (
                     <div
                       key={member.id || index}
@@ -344,9 +386,14 @@ export default function BoardSection() {
                             setActiveBlock("board.management");
                           }
                         }}
-                        className="group relative rounded-2xl border transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 bg-linear-to-br from-[#141428]/60 to-[#0a0a1e]/80 border-white/5 hover:border-purple-500/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(168,85,247,0.3)] hover:-translate-y-3 hover:scale-[1.02]"
+                        className="glass-panel group relative rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 hover:-translate-y-3 hover:scale-[1.02]"
+                        style={
+                          {
+                            "--c-rgb": rgbVars,
+                          } as React.CSSProperties
+                        }
                       >
-                        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -384,8 +431,13 @@ export default function BoardSection() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={link.label}
-                                className="p-2.5 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 hover:bg-white/20"
-                                style={{ transitionDelay: `${idx * 50}ms` }}
+                                className="liquid-glass p-2.5 rounded-full transition-all duration-300 hover:scale-110"
+                                style={
+                                  {
+                                    "--c-rgb": rgbVars,
+                                    transitionDelay: `${idx * 50}ms`,
+                                  } as React.CSSProperties
+                                }
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <link.icon className="w-4 h-4 text-white" />
@@ -440,6 +492,13 @@ export default function BoardSection() {
                     },
                   ].filter((link) => link.url);
 
+                  const color = boardColors[member.id || member.name] || {
+                    r: 139,
+                    g: 92,
+                    b: 246,
+                  };
+                  const rgbVars = `${color.r}, ${color.g}, ${color.b}`;
+
                   return (
                     <div
                       key={member.id || index}
@@ -463,9 +522,14 @@ export default function BoardSection() {
                             setActiveBlock("board.supervision");
                           }
                         }}
-                        className="group relative rounded-2xl border transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 bg-linear-to-br from-[#141428]/60 to-[#0a0a1e]/80 border-white/5 hover:border-purple-500/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_20px_40px_rgba(0,0,0,0.4),0_0_0_1px_rgba(168,85,247,0.3)] hover:-translate-y-3 hover:scale-[1.02]"
+                        className="glass-panel group relative rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer aspect-3/4 z-10 hover:z-20 hover:-translate-y-3 hover:scale-[1.02]"
+                        style={
+                          {
+                            "--c-rgb": rgbVars,
+                          } as React.CSSProperties
+                        }
                       >
-                        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
+                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -503,8 +567,13 @@ export default function BoardSection() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={link.label}
-                                className="p-2.5 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 hover:bg-white/20"
-                                style={{ transitionDelay: `${idx * 50}ms` }}
+                                className="liquid-glass p-2.5 rounded-full transition-all duration-300 hover:scale-110"
+                                style={
+                                  {
+                                    "--c-rgb": rgbVars,
+                                    transitionDelay: `${idx * 50}ms`,
+                                  } as React.CSSProperties
+                                }
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <link.icon className="w-4 h-4 text-white" />

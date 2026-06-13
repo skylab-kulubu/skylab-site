@@ -222,25 +222,16 @@ export default function Header() {
         }}
       >
         <div
-          className="absolute inset-0 -z-20 transition-opacity duration-700 ease-in-out"
+          className="absolute inset-x-0 top-0 h-[160%] -z-30 pointer-events-none transition-opacity duration-700 ease-in-out"
           style={{
             opacity: isScrolled ? 0 : 1,
-            background: "transparent",
-            backdropFilter: "blur(0px)",
-            WebkitBackdropFilter: "blur(0px)",
+            background:
+              "linear-gradient(to bottom, rgba(4, 3, 14, 0.6) 0%, rgba(4, 3, 14, 0.3) 55%, transparent 100%)",
           }}
         />
         <div
-          className="absolute inset-0 -z-20 transition-opacity duration-700 ease-in-out"
-          style={{
-            opacity: isScrolled ? 1 : 0,
-            background:
-              "linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(10, 10, 30, 0.8) 100%)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow:
-              "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
-          }}
+          className="glass-panel-dark absolute inset-0 -z-20 border-0 transition-opacity duration-700 ease-in-out"
+          style={{ opacity: isScrolled ? 1 : 0 }}
         />
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -267,16 +258,7 @@ export default function Header() {
               <SkyLabLogo />
             </Link>
             <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <nav
-                className="flex items-center gap-1 rounded-full p-1.5"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  boxShadow:
-                    "inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0, 0, 0, 0.2)",
-                }}
-              >
+              <nav className="liquid-glass flex items-center gap-1 rounded-full p-1.5">
                 {navLinks.map((link) => {
                   const isActive = isActiveLink(link);
                   return (
@@ -312,11 +294,12 @@ export default function Header() {
                           className={`relative z-10 whitespace-nowrap transition-colors duration-300 ${
                             isActive
                               ? "text-white"
-                              : "text-white/60 group-hover:text-white"
+                              : "text-white/70 group-hover:text-white"
                           }`}
                           style={{
                             WebkitFontSmoothing: "antialiased",
                             transform: "translateZ(0)",
+                            textShadow: "0 1px 6px rgba(0, 0, 0, 0.55)",
                           }}
                         >
                           {link.label}
@@ -374,23 +357,25 @@ export default function Header() {
 
             <motion.div
               id="mobile-menu"
-              initial={{ y: -20, opacity: 0, scale: 0.95 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: -20, opacity: 0, scale: 0.95 }}
+              initial={{ y: -20, opacity: 0, scale: 0.95, z: 0 }}
+              animate={{ y: 0, opacity: 1, scale: 1, z: 0 }}
+              exit={{ y: -20, opacity: 0, scale: 0.95, z: 0 }}
               transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
-              className="fixed top-20 left-4 right-4 md:hidden z-50 origin-top"
-              style={{ willChange: "transform, opacity" }}
+              className="fixed top-20 left-4 right-4 md:hidden z-50 origin-top rounded-2xl overflow-hidden"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.01) 60%, rgba(255, 255, 255, 0.1) 100%), rgba(12, 14, 34, 0.28)",
+                border: "1px solid rgba(255, 255, 255, 0.18)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(255, 255, 255, 0.06), inset 0 0 18px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.45)",
+                backdropFilter: "blur(24px) saturate(180%)",
+                WebkitBackdropFilter: "blur(24px) saturate(180%)",
+                willChange: "transform, opacity, filter, backdrop-filter",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+              }}
             >
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  boxShadow:
-                    "0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05)",
-                }}
-              >
+              <div>
                 <div className="h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
 
                 <nav className="p-3">
