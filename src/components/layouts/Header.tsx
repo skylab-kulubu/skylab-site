@@ -229,10 +229,7 @@ export default function Header() {
               "linear-gradient(to bottom, rgba(4, 3, 14, 0.6) 0%, rgba(4, 3, 14, 0.3) 55%, transparent 100%)",
           }}
         />
-        <div
-          className="glass-panel-dark absolute inset-0 -z-20 border-0 transition-opacity duration-700 ease-in-out"
-          style={{ opacity: isScrolled ? 1 : 0 }}
-        />
+        <div className={`header-glass-bg ${isScrolled ? "scrolled" : ""}`} />
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
@@ -257,8 +254,8 @@ export default function Header() {
             >
               <SkyLabLogo />
             </Link>
-            <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <nav className="liquid-glass flex items-center gap-1 rounded-full p-1.5">
+            <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
+              <nav className="liquid-glass pointer-events-auto flex items-center gap-1 rounded-full p-1.5">
                 {navLinks.map((link) => {
                   const isActive = isActiveLink(link);
                   return (
@@ -370,9 +367,6 @@ export default function Header() {
                   "inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(255, 255, 255, 0.06), inset 0 0 18px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.45)",
                 backdropFilter: "blur(24px) saturate(180%)",
                 WebkitBackdropFilter: "blur(24px) saturate(180%)",
-                willChange: "transform, opacity, filter, backdrop-filter",
-                backfaceVisibility: "hidden",
-                WebkitBackfaceVisibility: "hidden",
               }}
             >
               <div>

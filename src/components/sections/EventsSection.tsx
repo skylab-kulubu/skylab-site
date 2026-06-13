@@ -61,15 +61,7 @@ function FeaturedEventSpotlight({
   const content = (
     <div
       className="liquid-glass group relative overflow-hidden rounded-3xl transition-all duration-500 hover:-translate-y-1"
-      style={
-        {
-          "--c-rgb": rgb,
-          transform: "translate3d(0, 0, 0)",
-          willChange: "transform, opacity, filter, backdrop-filter",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-        } as React.CSSProperties
-      }
+      style={{ "--c-rgb": rgb } as React.CSSProperties}
     >
       <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/6 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-20" />
       <div className="flex flex-col md:flex-row">
@@ -514,6 +506,11 @@ export default function EventsSection() {
                   textShadow: "0 0 15px rgba(var(--c-rgb), 0.5)",
                 } as React.CSSProperties;
 
+                const dividerStyle = {
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent)",
+                } as React.CSSProperties;
+
                 const borderLineStyle = {
                   background:
                     "linear-gradient(90deg, transparent, rgba(var(--c-rgb), 0.8), transparent)",
@@ -539,14 +536,7 @@ export default function EventsSection() {
                         isAdmin &&
                           "hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]",
                       )}
-                      style={{
-                        ...cardStyle,
-                        transform: "translate3d(0, 0, 0)",
-                        willChange:
-                          "transform, opacity, filter, backdrop-filter",
-                        backfaceVisibility: "hidden",
-                        WebkitBackfaceVisibility: "hidden",
-                      }}
+                      style={cardStyle}
                     >
                       <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
@@ -634,9 +624,13 @@ export default function EventsSection() {
 
                         {tags.length > 0 && (
                           <div
-                            className="relative w-full overflow-hidden mt-auto pt-4 border-t border-white/10 shrink-0"
+                            className="relative w-full overflow-hidden mt-auto pt-4 shrink-0"
                             style={maskStyle}
                           >
+                            <div
+                              className="absolute inset-x-0 top-0 h-px pointer-events-none"
+                              style={dividerStyle}
+                            />
                             <div className="animate-marquee pb-2">
                               {[...tags, ...tags].map((tag, idx) => (
                                 <span

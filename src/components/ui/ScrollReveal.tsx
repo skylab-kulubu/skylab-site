@@ -55,10 +55,8 @@ export const ScrollReveal = () => {
               : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
           }
           className={cn(
-            "relative p-4 rounded-full transition-all duration-700",
-            "bg-white/3 backdrop-blur-xl backdrop-saturate-150 border border-white/10",
-            "shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.05)]",
-            "group-hover:scale-110 group-hover:border-purple-500/40 group-hover:shadow-[0_0_40px_rgba(168,85,247,0.3)]"
+            "liquid-glass relative p-4 rounded-full",
+            "group-hover:scale-110"
           )}
         >
           <div
