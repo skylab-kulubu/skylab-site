@@ -1,16 +1,7 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
 import "./globals.css";
 import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
-
-const manrope = Manrope({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['200', '300', '400', '500', '600', '700', '800'],
-  variable: '--font-manrope-sans',
-  display: 'swap',
-  preload: true,
-});
 
 export const metadata: Metadata = {
   title: "SKY LAB Bilgisayar Bilimleri Kulübü",
@@ -34,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning> 
       <body
-        className={`${manrope.variable} font-sans antialiased`}
+        className="font-sans antialiased"
         suppressHydrationWarning
       >
         <ScrollProgress/>
