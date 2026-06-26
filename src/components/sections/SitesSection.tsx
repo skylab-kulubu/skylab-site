@@ -29,6 +29,7 @@ const extractionCache = new Map<string, RGB>();
 export default function SitesSection() {
   const { isAdmin, setActiveBlock } = useCmsContext();
   const [isMounted, setIsMounted] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const sitesBlock = useCmsBlock("sites.list", {
@@ -51,6 +52,7 @@ export default function SitesSection() {
 
   useEffect(() => {
     setIsMounted(true);
+    setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
   const sitesImageCacheKey = sortedSites
@@ -218,7 +220,12 @@ export default function SitesSection() {
                     <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                     <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"
+                      className={cn(
+                        "absolute inset-0 transition-opacity duration-500 pointer-events-none z-20",
+                        isTouch
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100",
+                      )}
                       style={overlayStyle}
                     />
 
@@ -261,7 +268,12 @@ export default function SitesSection() {
                           )}
                         >
                           <h3
-                            className="text-lg md:text-xl font-bold truncate transition-colors duration-300 text-white group-hover:text-[rgb(var(--c-bright))]"
+                            className={cn(
+                              "text-lg md:text-xl font-bold truncate transition-colors duration-300",
+                              isTouch
+                                ? "text-[rgb(var(--c-bright))]"
+                                : "text-white group-hover:text-[rgb(var(--c-bright))]",
+                            )}
                             style={titleStyle}
                           >
                             {site.title}
@@ -271,14 +283,26 @@ export default function SitesSection() {
                             style={arrowStyle}
                           />
                         </div>
-                        <p className="text-sm md:text-base m-0 line-clamp-2 text-white/60 group-hover:text-white/95 transition-colors duration-300">
+                        <p
+                          className={cn(
+                            "text-sm md:text-base m-0 line-clamp-2 transition-colors duration-300",
+                            isTouch
+                              ? "text-white/90"
+                              : "text-white/60 group-hover:text-white/95",
+                          )}
+                        >
                           {site.description}
                         </p>
                       </div>
                     </div>
 
                     <div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-30"
+                      className={cn(
+                        "absolute bottom-0 left-0 right-0 h-0.5 transition-opacity duration-500 pointer-events-none z-30",
+                        isTouch
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100",
+                      )}
                       style={lineStyle}
                     />
                   </a>

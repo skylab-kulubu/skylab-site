@@ -16,13 +16,16 @@ const nextConfig: NextConfig = {
     if (dev) {
       const orig = config.watchOptions?.ignored;
       let newIgnored;
-      
+
       if (orig instanceof RegExp) {
         newIgnored = new RegExp(orig.source + "|cms-blocks\\.json");
       } else if (typeof orig === "string") {
         newIgnored = [orig, "**/cms-blocks.json"];
       } else if (Array.isArray(orig)) {
-        newIgnored = [...orig.filter((x) => typeof x === "string"), "**/cms-blocks.json"];
+        newIgnored = [
+          ...orig.filter((x) => typeof x === "string"),
+          "**/cms-blocks.json",
+        ];
       } else {
         newIgnored = "**/cms-blocks.json";
       }

@@ -414,6 +414,32 @@ body {
   }
 }
 
+.reduce-fx .animate-twinkle,
+.reduce-fx .animate-marquee,
+.reduce-fx .animate-shimmer,
+.reduce-fx .text-metallic,
+.reduce-fx .emblem-wave {
+  animation: none !important;
+}
+
+.reduce-fx .text-metallic {
+  background-position: 0 center;
+}
+
+.reduce-fx .emblem-liquid {
+  transform: translateY(10px);
+}
+
+.reduce-fx .liquid-glass,
+.reduce-fx .glass,
+.reduce-fx .glass-panel,
+.reduce-fx .glass-dark,
+.reduce-fx .glass-panel-dark,
+.reduce-fx .header-glass-bg.scrolled {
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }

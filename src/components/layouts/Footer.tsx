@@ -152,7 +152,7 @@ export default function Footer() {
           ...notchMask,
           background:
             "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 45%, rgba(255, 255, 255, 0.01) 60%, rgba(255, 255, 255, 0.03) 100%), rgba(12, 14, 34, 0.28)",
-          borderTop: "1px solid rgba(255, 255, 255, 0.18)",
+          borderTop: "1px solid rgba(113, 118, 246, 0.3)",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
         }}
@@ -160,7 +160,7 @@ export default function Footer() {
       >
         <div
           className={cn(
-            "absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent transition-all duration-1000",
+            "absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#7176f6]/55 to-transparent transition-all duration-1000",
             isVisible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0",
           )}
         />

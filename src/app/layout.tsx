@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import "./globals.css";
 import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
+import MotionPrefs from "@/components/providers/MotionPrefs";
 
 const manrope = Manrope({
   subsets: ['latin', 'latin-ext'],
@@ -37,9 +38,11 @@ export default function RootLayout({
         className={`${manrope.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
-        <ScrollProgress/>
-        <CursorGlow />
-        <main>{children}</main>
+        <MotionPrefs>
+          <ScrollProgress/>
+          <CursorGlow />
+          <main>{children}</main>
+        </MotionPrefs>
       </body>
     </html>
   );

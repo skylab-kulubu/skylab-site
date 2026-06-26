@@ -177,8 +177,11 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
       .map((t: any) => (t.category || "").trim())
       .filter((c: string) => c.length > 0 && !isArgeCat(c));
     const cats = Array.from(new Set([...fromArge, ...fromList]));
+    if (isAdmin && !cats.some((c) => c.trim().toLowerCase() === "sosyal")) {
+      cats.push("Sosyal");
+    }
     return cats.length > 0 ? cats : ["Ar-Ge", "Sosyal"];
-  }, [argeTeams, listRaw]);
+  }, [argeTeams, listRaw, isAdmin]);
 
   const [activeCategory, setActiveCategory] = useState<string>(() => {
     return categories.find(isArgeCat) ?? categories[0] ?? "Ar-Ge";
@@ -262,6 +265,25 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
 
   const isArgeSelected =
     !!selectedTeam && argeTeams.some((t) => t.id === selectedTeam.id);
+
+  const isListTab = !isArgeCat(activeCategory);
+
+  const seedCategory = isListTab
+    ? activeCategory
+    : categories.find((c) => !isArgeCat(c)) ?? "Sosyal";
+
+  const teamItemSchema = useMemo(
+    () => ({
+      id: { blockType: "Text" as const, defaultValue: "" },
+      name: { blockType: "Text" as const, defaultValue: "" },
+      slug: { blockType: "Text" as const, defaultValue: "" },
+      category: { blockType: "Text" as const, defaultValue: seedCategory },
+      logoWhite: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
+      logoColor: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
+      description: { blockType: "RichText" as const, defaultValue: "" },
+    }),
+    [seedCategory],
+  );
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -435,21 +457,8 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
 
             <EditableList
               blockPath="teams.list"
-              itemSchema={{
-                id: { blockType: "Text", defaultValue: "" },
-                name: { blockType: "Text", defaultValue: "" },
-                slug: { blockType: "Text", defaultValue: "" },
-                category: { blockType: "Text", defaultValue: "Ar-Ge" },
-                logoWhite: {
-                  blockType: "Image",
-                  defaultValue: { src: "", alt: "" },
-                },
-                logoColor: {
-                  blockType: "Image",
-                  defaultValue: { src: "", alt: "" },
-                },
-                description: { blockType: "RichText", defaultValue: "" },
-              }}
+              itemSchema={teamItemSchema}
+              editable={isListTab}
               defaultValue={[]}
             >
               {(rawTeam, index) => {
