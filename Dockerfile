@@ -10,7 +10,7 @@ ENV CMS_URL=https://api.yildizskylab.com/api
 ENV CMS_CDN_URL=https://api.yildizskylab.com/api/media
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN npx next build --webpack
 
 FROM --platform=linux/amd64 node:22-alpine
 WORKDIR /app
