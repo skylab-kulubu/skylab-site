@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+.next
+.open-next
+.wrangler
+.dev.vars
+*.md
+.github
+.claude
+.antigravity

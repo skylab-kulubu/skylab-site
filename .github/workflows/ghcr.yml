@@ -1,0 +1,49 @@
+name: GHCR
+
+on:
+  push:
+    branches: [main, production]
+    tags: ["v*.*.*"]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - id: tags
+        run: |
+          img=ghcr.io/skylab-kulubu/skylab-site
+          sha='${{ github.sha }}'
+          ref='${{ github.ref_name }}'
+          if [ "$ref" = production ]; then
+            echo "list=${img}:production,${img}:${sha}" >> "$GITHUB_OUTPUT"
+          elif [ "$ref" = main ]; then
+            echo "list=${img}:latest,${img}:${sha}" >> "$GITHUB_OUTPUT"
+          else
+            echo "list=${img}:${sha}" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.tags.outputs.list }}
+      - name: Notify Dokploy
+        if: github.ref == 'refs/heads/production'
+        env:
+          HOOK: ${{ secrets.DOKPLOY_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "DOKPLOY_DEPLOY_HOOK unset; skip"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
