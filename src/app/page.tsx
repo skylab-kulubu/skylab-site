@@ -12,6 +12,8 @@ import Universe from "../components/ui/Universe";
 import { ScrollReveal } from "../components/ui/ScrollReveal";
 import { CmsPage } from "../lib/cms";
 
+export const dynamic = "force-dynamic";
+
 // @ts-ignore
 const withCms = (slug: string) => {};
 withCms("/");
