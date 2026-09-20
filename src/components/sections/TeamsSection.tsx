@@ -656,7 +656,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
             onMouseLeave={() => setIsButtonHovering(false)}
             onClick={() =>
               window.open(
-                "https://forms.yildizskylab.com/",
+                process.env.NEXT_PUBLIC_FORMS_URL ?? "http://localhost:3001",
                 "_blank",
                 "noopener,noreferrer",
               )
