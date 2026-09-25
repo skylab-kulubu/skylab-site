@@ -37,12 +37,10 @@ jobs:
           if [ "$ref" = production ] || [[ "$ref" == v* ]]; then
             echo "api_url=https://api.yildizskylab.com" >> "$GITHUB_OUTPUT"
             echo "cms_url=https://api.yildizskylab.com/api" >> "$GITHUB_OUTPUT"
-            echo "cms_cdn_url=https://api.yildizskylab.com/api/media" >> "$GITHUB_OUTPUT"
             echo "forms_url=https://forms.yildizskylab.com" >> "$GITHUB_OUTPUT"
           else
             echo "api_url=https://sandbox-api.yildizskylab.com" >> "$GITHUB_OUTPUT"
             echo "cms_url=https://sandbox-api.yildizskylab.com/api" >> "$GITHUB_OUTPUT"
-            echo "cms_cdn_url=https://sandbox-api.yildizskylab.com/api/media" >> "$GITHUB_OUTPUT"
             echo "forms_url=https://sandbox-forms.yildizskylab.com" >> "$GITHUB_OUTPUT"
           fi
       - uses: docker/build-push-action@v6
@@ -54,7 +52,6 @@ jobs:
           build-args: |
             API_BASE_URL=${{ steps.environment.outputs.api_url }}
             CMS_URL=${{ steps.environment.outputs.cms_url }}
-            CMS_CDN_URL=${{ steps.environment.outputs.cms_cdn_url }}
             NEXT_PUBLIC_FORMS_URL=${{ steps.environment.outputs.forms_url }}
       - name: Notify Dokploy
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
