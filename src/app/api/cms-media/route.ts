@@ -1,9 +1,9 @@
 import { cmsConfig } from "@/lib/cms-config";
+import { coreMediaUrl } from "@/lib/core-media";
 
-// CMS and core share the API host in every environment, so the CMS base URL
-// the site already depends on also names the right core (production or
-// sandbox).
-const coreMedia = `${new URL(cmsConfig.baseUrl).origin}/v1/media`;
+// CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts:
+// the site's runtime environment does not carry API_BASE_URL.
+const coreMedia = coreMediaUrl(process.env.CORE_API_ORIGIN, cmsConfig.baseUrl);
 
 // The CMS image editor (inscribed 1.x) posts here and reads the uploaded
 // image's address from `data.url`, the Java-era response envelope. Core's
