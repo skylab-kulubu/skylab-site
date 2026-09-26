@@ -10,7 +10,8 @@
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "sync": "cms-sync --app-root ./src"
+    "sync": "cms-sync --app-root ./src",
+    "test": "node --test test/"
   },
   "dependencies": {
     "@skylab-kulubu/inscribed-auth": "^0.3.0",
