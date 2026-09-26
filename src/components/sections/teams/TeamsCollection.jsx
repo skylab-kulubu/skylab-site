@@ -2,9 +2,7 @@
 
 import { useMemo } from "react";
 import { CollectionRegion } from "inscribed";
-import { teamsFromItems } from "./fromCollection.js";
-
-const TEAMS_COLLECTION_KEY = "Teams";
+import { TEAMS_COLLECTION_KEY, teamsFromItems } from "./fromCollection.js";
 
 function TeamsBinding({ items, meta, children }) {
   const teams = useMemo(() => teamsFromItems(items), [items]);
