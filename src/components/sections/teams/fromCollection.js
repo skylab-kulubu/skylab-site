@@ -1,3 +1,7 @@
+// inscribed only knows lowercase collection keys (^[a-z0-9]+(-[a-z0-9]+)*$)
+// and answers 404 to the old cms-backend's "Teams".
+export const TEAMS_COLLECTION_KEY = "teams";
+
 const TEAM_META = {
   airlab: {
     name: "AIR LAB",
