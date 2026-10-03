@@ -18,14 +18,14 @@ import { extractDominantColor } from "@/lib/color-extractor";
 import type { RGB } from "@/lib/data/types";
 
 const boardMemberSchema = {
-  id: { blockType: "Text" as const, defaultValue: "" },
-  name: { blockType: "Text" as const, defaultValue: "" },
-  position: { blockType: "Text" as const, defaultValue: "" },
+  id: { blockType: "ShortText" as const, defaultValue: "" },
+  name: { blockType: "ShortText" as const, defaultValue: "" },
+  position: { blockType: "ShortText" as const, defaultValue: "" },
   image: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-  linkedin: { blockType: "Text" as const, defaultValue: "" },
-  github: { blockType: "Text" as const, defaultValue: "" },
-  twitter: { blockType: "Text" as const, defaultValue: "" },
-  instagram: { blockType: "Text" as const, defaultValue: "" },
+  linkedin: { blockType: "ShortText" as const, defaultValue: "" },
+  github: { blockType: "ShortText" as const, defaultValue: "" },
+  twitter: { blockType: "ShortText" as const, defaultValue: "" },
+  instagram: { blockType: "ShortText" as const, defaultValue: "" },
 };
 
 const defaultManagement: any[] = [];
@@ -55,11 +55,11 @@ export default function BoardSection() {
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const managementBlocks = useCmsBlock("board.management", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const supervisionBlocks = useCmsBlock("board.supervision", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
 
@@ -330,17 +330,17 @@ export default function BoardSection() {
               <EditableList
                 blockPath="board.management"
                 itemSchema={{
-                  id: { blockType: "Text", defaultValue: "" },
-                  name: { blockType: "Text", defaultValue: "" },
-                  position: { blockType: "Text", defaultValue: "" },
+                  id: { blockType: "ShortText", defaultValue: "" },
+                  name: { blockType: "ShortText", defaultValue: "" },
+                  position: { blockType: "ShortText", defaultValue: "" },
                   image: {
                     blockType: "Image",
                     defaultValue: { src: "", alt: "" },
                   },
-                  linkedin: { blockType: "Text", defaultValue: "" },
-                  github: { blockType: "Text", defaultValue: "" },
-                  twitter: { blockType: "Text", defaultValue: "" },
-                  instagram: { blockType: "Text", defaultValue: "" },
+                  linkedin: { blockType: "ShortText", defaultValue: "" },
+                  github: { blockType: "ShortText", defaultValue: "" },
+                  twitter: { blockType: "ShortText", defaultValue: "" },
+                  instagram: { blockType: "ShortText", defaultValue: "" },
                 }}
                 defaultValue={[]}
               >
@@ -466,17 +466,17 @@ export default function BoardSection() {
               <EditableList
                 blockPath="board.supervision"
                 itemSchema={{
-                  id: { blockType: "Text", defaultValue: "" },
-                  name: { blockType: "Text", defaultValue: "" },
-                  position: { blockType: "Text", defaultValue: "" },
+                  id: { blockType: "ShortText", defaultValue: "" },
+                  name: { blockType: "ShortText", defaultValue: "" },
+                  position: { blockType: "ShortText", defaultValue: "" },
                   image: {
                     blockType: "Image",
                     defaultValue: { src: "", alt: "" },
                   },
-                  linkedin: { blockType: "Text", defaultValue: "" },
-                  github: { blockType: "Text", defaultValue: "" },
-                  twitter: { blockType: "Text", defaultValue: "" },
-                  instagram: { blockType: "Text", defaultValue: "" },
+                  linkedin: { blockType: "ShortText", defaultValue: "" },
+                  github: { blockType: "ShortText", defaultValue: "" },
+                  twitter: { blockType: "ShortText", defaultValue: "" },
+                  instagram: { blockType: "ShortText", defaultValue: "" },
                 }}
                 defaultValue={[]}
               >

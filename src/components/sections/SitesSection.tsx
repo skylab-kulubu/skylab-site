@@ -12,14 +12,14 @@ import { extractDominantColor } from "@/lib/color-extractor";
 import type { RGB } from "@/lib/data/types";
 
 const siteItemSchema = {
-  id: { blockType: "Text" as const, defaultValue: "" },
-  title: { blockType: "Text" as const, defaultValue: "" },
-  slug: { blockType: "Text" as const, defaultValue: "" },
-  description: { blockType: "Text" as const, defaultValue: "" },
-  url: { blockType: "Text" as const, defaultValue: "" },
+  id: { blockType: "ShortText" as const, defaultValue: "" },
+  title: { blockType: "ShortText" as const, defaultValue: "" },
+  slug: { blockType: "ShortText" as const, defaultValue: "" },
+  description: { blockType: "LongText" as const, defaultValue: "" },
+  url: { blockType: "ShortText" as const, defaultValue: "" },
   image: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-  category: { blockType: "Text" as const, defaultValue: "platform" },
-  featured: { blockType: "Text" as const, defaultValue: "false" },
+  category: { blockType: "ShortText" as const, defaultValue: "platform" },
+  featured: { blockType: "ShortText" as const, defaultValue: "false" },
 };
 
 const defaultSites: any[] = [];
@@ -33,7 +33,7 @@ export default function SitesSection() {
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const sitesBlock = useCmsBlock("sites.list", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const sitesList = Array.isArray(sitesBlock.value)
@@ -127,14 +127,14 @@ export default function SitesSection() {
           <EditableList
             blockPath="sites.list"
             itemSchema={{
-              id: { blockType: "Text", defaultValue: "" },
-              title: { blockType: "Text", defaultValue: "" },
-              slug: { blockType: "Text", defaultValue: "" },
-              description: { blockType: "Text", defaultValue: "" },
-              url: { blockType: "Text", defaultValue: "" },
+              id: { blockType: "ShortText", defaultValue: "" },
+              title: { blockType: "ShortText", defaultValue: "" },
+              slug: { blockType: "ShortText", defaultValue: "" },
+              description: { blockType: "LongText", defaultValue: "" },
+              url: { blockType: "ShortText", defaultValue: "" },
               image: { blockType: "Image", defaultValue: { src: "", alt: "" } },
-              category: { blockType: "Text", defaultValue: "platform" },
-              featured: { blockType: "Text", defaultValue: "false" },
+              category: { blockType: "ShortText", defaultValue: "platform" },
+              featured: { blockType: "ShortText", defaultValue: "false" },
             }}
             defaultValue={[]}
           >

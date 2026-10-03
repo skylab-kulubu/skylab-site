@@ -4,6 +4,7 @@ import "./globals.css";
 import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import MotionPrefs from "@/components/providers/MotionPrefs";
+import { CmsPage } from "@/lib/cms";
 
 const manrope = Manrope({
   subsets: ['latin', 'latin-ext'],
@@ -41,7 +42,9 @@ export default function RootLayout({
         <MotionPrefs>
           <ScrollProgress/>
           <CursorGlow />
-          <main>{children}</main>
+          <CmsPage>
+            <main>{children}</main>
+          </CmsPage>
         </MotionPrefs>
       </body>
     </html>

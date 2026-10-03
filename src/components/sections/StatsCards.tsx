@@ -365,10 +365,10 @@ export default function StatsCards({
           <EditableList
             blockPath="hero.stats"
             itemSchema={{
-              value: { blockType: "Text", defaultValue: "0" },
-              label: { blockType: "Text", defaultValue: "" },
-              suffix: { blockType: "Text", defaultValue: "" },
-              iconName: { blockType: "Text", defaultValue: "Users" },
+              value: { blockType: "ShortText", defaultValue: "0" },
+              label: { blockType: "ShortText", defaultValue: "" },
+              suffix: { blockType: "ShortText", defaultValue: "" },
+              iconName: { blockType: "ShortText", defaultValue: "Users" },
             }}
             defaultValue={[]}
           >

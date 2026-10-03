@@ -10,13 +10,8 @@ import IntroductionSection from "../components/sections/IntroductionSection";
 import FeaturesSection from "../components/sections/FeaturesSection";
 import Universe from "../components/ui/Universe";
 import { ScrollReveal } from "../components/ui/ScrollReveal";
-import { CmsPage } from "../lib/cms";
 
 export const dynamic = "force-dynamic";
-
-// @ts-ignore
-const withCms = (slug: string) => {};
-withCms("/");
 
 export default function Home() {
   return (
@@ -29,7 +24,6 @@ export default function Home() {
         revealDuration={2.5}
       />
       <Header />
-      <CmsPage slug="/">
         <div className="min-h-screen bg-transparent overflow-x-clip">
           <main className="relative z-10 w-full">
             <section
@@ -70,7 +64,6 @@ export default function Home() {
             </section>
           </main>
         </div>
-      </CmsPage>
     </>
   );
 }
