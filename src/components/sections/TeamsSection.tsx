@@ -164,7 +164,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const teamsBlock = useCmsBlock("teams.list", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const listRaw: any[] = Array.isArray(teamsBlock.value)
@@ -267,23 +267,6 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
     !!selectedTeam && argeTeams.some((t) => t.id === selectedTeam.id);
 
   const isListTab = !isArgeCat(activeCategory);
-
-  const seedCategory = isListTab
-    ? activeCategory
-    : categories.find((c) => !isArgeCat(c)) ?? "Sosyal";
-
-  const teamItemSchema = useMemo(
-    () => ({
-      id: { blockType: "Text" as const, defaultValue: "" },
-      name: { blockType: "Text" as const, defaultValue: "" },
-      slug: { blockType: "Text" as const, defaultValue: "" },
-      category: { blockType: "Text" as const, defaultValue: seedCategory },
-      logoWhite: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-      logoColor: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-      description: { blockType: "RichText" as const, defaultValue: "" },
-    }),
-    [seedCategory],
-  );
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -457,7 +440,15 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
 
             <EditableList
               blockPath="teams.list"
-              itemSchema={teamItemSchema}
+              itemSchema={{
+                id: { blockType: "ShortText", defaultValue: "" },
+                name: { blockType: "ShortText", defaultValue: "" },
+                slug: { blockType: "ShortText", defaultValue: "" },
+                category: { blockType: "ShortText", defaultValue: "" },
+                logoWhite: { blockType: "Image", defaultValue: { src: "", alt: "" } },
+                logoColor: { blockType: "Image", defaultValue: { src: "", alt: "" } },
+                description: { blockType: "RichText", defaultValue: "" },
+              }}
               editable={isListTab}
               defaultValue={[]}
             >

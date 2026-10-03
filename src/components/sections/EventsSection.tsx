@@ -213,7 +213,7 @@ export default function EventsSection() {
   const rafRef = useRef<number>(0);
 
   const eventsBlock = useCmsBlock("events.list", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const eventsList = Array.isArray(eventsBlock.value)
@@ -429,20 +429,20 @@ export default function EventsSection() {
             <EditableList
               blockPath="events.list"
               itemSchema={{
-                id: { blockType: "Text", defaultValue: "" },
-                title: { blockType: "Text", defaultValue: "" },
-                slug: { blockType: "Text", defaultValue: "" },
+                id: { blockType: "ShortText", defaultValue: "" },
+                title: { blockType: "ShortText", defaultValue: "" },
+                slug: { blockType: "ShortText", defaultValue: "" },
                 description: { blockType: "RichText", defaultValue: "" },
-                shortDescription: { blockType: "Text", defaultValue: "" },
+                shortDescription: { blockType: "LongText", defaultValue: "" },
                 image: {
                   blockType: "Image",
                   defaultValue: { src: "", alt: "" },
                 },
-                category: { blockType: "Text", defaultValue: "Zirve" },
-                tags: { blockType: "Text", defaultValue: "Networking" },
-                url: { blockType: "Text", defaultValue: "" },
-                date: { blockType: "Text", defaultValue: "" },
-                featured: { blockType: "Text", defaultValue: "false" },
+                category: { blockType: "ShortText", defaultValue: "Zirve" },
+                tags: { blockType: "ShortText", defaultValue: "Networking" },
+                url: { blockType: "ShortText", defaultValue: "" },
+                date: { blockType: "ShortText", defaultValue: "" },
+                featured: { blockType: "ShortText", defaultValue: "false" },
               }}
               defaultValue={[]}
             >
