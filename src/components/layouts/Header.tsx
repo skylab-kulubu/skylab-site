@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { CmsPanelSwitch } from "@/components/ui/CmsPanelSwitch";
 import { SkyLabLogo } from "@/components/ui/SkyLabLogo";
 import { Menu, X } from "lucide-react";
 
@@ -307,7 +308,9 @@ export default function Header() {
                 })}
               </nav>
             </div>
-            <div className="hidden md:block w-30" />
+            <div className="hidden md:flex w-30 justify-end">
+              <CmsPanelSwitch compact />
+            </div>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? "Menüyü kapat" : "Menüyü aç"}
@@ -418,6 +421,10 @@ export default function Header() {
                     );
                   })}
                 </nav>
+
+                <div className="px-3 pb-3">
+                  <CmsPanelSwitch />
+                </div>
 
                 <div className="px-6 pb-4">
                   <div className="flex items-center justify-center gap-2">
