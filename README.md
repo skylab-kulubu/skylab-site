@@ -35,3 +35,29 @@
     <img src="public/img/teams/weblablogorenkli.svg" alt="WebLab Team Logo" width="120" />
   </p>
 </div>
+
+## Local development
+
+```bash
+npm install
+npm run dev   # http://localhost:3000
+```
+
+Local development runs against the **sandbox**, never the production API or realm. `.env.local`:
+
+```env
+# The CMS through `npm run dev`'s proxy to the sandbox API (next.config.ts, `next dev` only):
+# the editor in the browser only talks to localhost, since the edge does not let
+# http://localhost:3000 call the club's hosts cross-origin. Change the port with the dev server's.
+CMS_URL=http://localhost:3000/sandbox-api/api
+# Core, for the CMS image bridge (server to server)
+API_BASE_URL=https://sandbox-api.yildizskylab.com
+KEYCLOAK_ISSUER=https://e.yildizskylab.com/realms/e-skylab-sandbox
+KEYCLOAK_CLIENT_ID=frontend-main
+KEYCLOAK_CLIENT_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+# openssl rand -base64 32
+NEXTAUTH_SECRET=
+```
+
+Without `CMS_URL` the server reads the sandbox CMS directly, which is enough for the public pages. The sandbox `frontend-main` client does not accept a localhost redirect URI, so the editor is tried on https://sandbox.yildizskylab.com. The deployed values come from the image build (`.github/workflows/ghcr.yml`) and Dokploy.
