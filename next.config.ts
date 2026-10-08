@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
         source: "/img/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex" }],
       },
+      {
+        // The door check-in page carries a short-lived door token in its address:
+        // keep it out of search results and out of the Referer of anything it loads.
+        source: "/kapi/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
   webpack: (config, { dev }) => {
