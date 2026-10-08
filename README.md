@@ -61,3 +61,12 @@ NEXTAUTH_SECRET=
 ```
 
 Without `CMS_URL` the server reads the sandbox CMS directly, which is enough for the public pages. The sandbox `frontend-main` client does not accept a localhost redirect URI, so the editor is tried on https://sandbox.yildizskylab.com. The deployed values come from the image build (`.github/workflows/ghcr.yml`) and Dokploy.
+
+## Door check-in (`/kapi/[sessionId]`)
+
+A guest without an account checks in to an event Session at the door. The door screen shows a QR that core signs and replaces every 15 seconds; it opens `/kapi/<sessionId>?dq=<token>`. The page asks for the e-mail of the guest's registration and posts `{email, doorToken}` from the browser to core's `POST /v1/sessions/{sessionId}/check-in/guest` (contract: core-backend `docs/guest-self-check-in.md`).
+
+- Core's origin is `API_BASE_URL` from the image build (`CORE_API_ORIGIN`, next.config.ts); `npm run dev` sends the check-in through the `/sandbox-api` proxy instead.
+- The call goes from the browser, not through this site's server, because core limits failed attempts per client address: through a server every guest would share one address. The edge's CORS (`cors-pub`) allows `https://yildizskylab.com` and `https://sandbox.yildizskylab.com`.
+- The page is `noindex`, sends no Referer, keeps the e-mail only in memory and takes `dq` out of the address bar after it loads.
+- Core builds the QR's address from `DOOR_QR_GUEST_URL` (core's environment): `https://yildizskylab.com/kapi/{sessionId}` in production, `https://sandbox.yildizskylab.com/kapi/{sessionId}` in the sandbox.
