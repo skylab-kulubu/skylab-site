@@ -17,20 +17,25 @@ export const metadata: Metadata = {
 // CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts.
 const coreApi = (process.env.CORE_API_ORIGIN ?? "").replace(/\/+$/, "");
 
+type SessionLookup = { kind: "found"; title: string | null } | { kind: "missing" } | { kind: "unknown" };
+
 // The Session's title, shown so the guest sees they are at the right door.
-// Core's GET /v1/sessions/{id} is public; without an answer the page still works.
-async function sessionTitle(sessionId: string): Promise<string | null> {
-  if (!coreApi) return null;
+// Core's GET /v1/sessions/{id} is public. A 404 means the QR names no Session
+// (core would refuse the check-in too); any other failure leaves the form up.
+async function findSession(sessionId: string): Promise<SessionLookup> {
+  if (!coreApi) return { kind: "unknown" };
   try {
     const response = await fetch(`${coreApi}/v1/sessions/${sessionId}`, {
       cache: "no-store",
       signal: AbortSignal.timeout(3000),
     });
-    if (!response.ok) return null;
+    if (response.status === 404) return { kind: "missing" };
+    if (!response.ok) return { kind: "unknown" };
     const session = (await response.json()) as { title?: unknown };
-    return typeof session.title === "string" && session.title.trim() ? session.title.trim() : null;
+    const title = typeof session.title === "string" ? session.title.trim() : "";
+    return { kind: "found", title: title || null };
   } catch {
-    return null;
+    return { kind: "unknown" };
   }
 }
 
@@ -45,7 +50,9 @@ export default async function DoorCheckInPage({
   const { dq } = await searchParams;
   const validSession = isSessionId(sessionId);
   const doorToken = validSession ? doorTokenFrom(dq) : null;
-  const title = validSession && doorToken ? await sessionTitle(sessionId) : null;
+  const session = validSession && doorToken ? await findSession(sessionId) : null;
+  const title = session?.kind === "found" ? session.title : null;
+  const missing = session?.kind === "missing";
 
   return (
     <div className="relative min-h-svh overflow-hidden bg-[#04030e] text-white">
@@ -64,14 +71,14 @@ export default async function DoorCheckInPage({
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-balance text-white sm:text-4xl">
             {title ?? "Kapıda giriş"}
           </h1>
-          {doorToken ? (
+          {doorToken && !missing ? (
             <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
               Etkinliğe kayıt olurken kullandığınız e-posta adresini yazın; girişiniz bu oturuma
               kaydedilsin.
             </p>
           ) : null}
           <div className="mt-8">
-            <GuestCheckIn sessionId={sessionId} doorToken={doorToken} />
+            <GuestCheckIn sessionId={sessionId} doorToken={doorToken} sessionMissing={missing} />
           </div>
         </section>
       </div>

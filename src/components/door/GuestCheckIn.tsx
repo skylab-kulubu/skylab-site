@@ -23,15 +23,19 @@ const apiBase = coreApiBase(process.env.NODE_ENV, process.env.CORE_API_ORIGIN);
 export default function GuestCheckIn({
   sessionId,
   doorToken,
+  sessionMissing = false,
 }: {
   sessionId: string;
   doorToken: string | null;
+  sessionMissing?: boolean;
 }) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<Result | null>(
-    doorToken ? null : { outcome: "scan-required", retryAfter: null },
-  );
+  const [result, setResult] = useState<Result | null>(() => {
+    if (!doorToken) return { outcome: "scan-required", retryAfter: null };
+    if (sessionMissing) return { outcome: "qr-invalid", retryAfter: null };
+    return null;
+  });
   const resultRef = useRef<HTMLDivElement>(null);
   const inputId = useId();
   const helpId = useId();
@@ -46,8 +50,8 @@ export default function GuestCheckIn({
   }, []);
 
   useEffect(() => {
-    if (result && doorToken) resultRef.current?.focus();
-  }, [result, doorToken]);
+    if (result && doorToken && !sessionMissing) resultRef.current?.focus();
+  }, [result, doorToken, sessionMissing]);
 
   const locked = sending || (result !== null && isFinal(result.outcome));
 
@@ -136,7 +140,7 @@ export default function GuestCheckIn({
               />
             </div>
             <p id={helpId} className="text-xs leading-5 text-slate-500">
-              Etkinliğe kayıt olurken kullandığınız adres. Yalnızca girişinizi kaydetmek için kullanılır.
+              Yalnızca girişinizi kaydetmek için kullanılır; bu sayfa adresi saklamaz.
             </p>
           </div>
           <button
