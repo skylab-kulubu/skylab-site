@@ -8,7 +8,19 @@ const nextConfig: NextConfig = {
   // API_BASE_URL of its own, so the value is fixed at build time.
   env: { CORE_API_ORIGIN: process.env.API_BASE_URL ?? "" },
   reactCompiler: true,
-  images: { unoptimized: true },
+  // Uploaded images are served by the club's CDN as the originals the editors dropped in
+  // (several MB each), so the image optimizer resizes them to what the page shows.
+  // SVG logos have no file extension on the CDN, so they pass through the optimizer unchanged.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.yildizskylab.com" },
+      { protocol: "https", hostname: "sandbox-cdn.yildizskylab.com" },
+    ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    qualities: [50, 75],
+    minimumCacheTTL: 60 * 60 * 24 * 7,
+  },
   async headers() {
     return [
       {
