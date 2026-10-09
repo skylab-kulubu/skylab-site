@@ -118,94 +118,100 @@ void main() {
   float revealT = clamp(iTime / max(u_revealDuration, 0.1), 0.0, 1.0);
   float reveal = revealT * revealT * (3.0 - 2.0 * revealT);
 
-  vec2 q = vec2(fbm4(p + time * 0.3), fbm4(p + 5.0));
-  vec2 r = vec2(fbm3(p + 4.0 * q + time * 0.5), fbm3(p + 4.0 * q + 8.0));
-  vec2 w = vec2(fbm3(p * 1.3 + 3.0 * r + time * 0.2), fbm3(p * 1.3 + 3.0 * r + 21.0));
-
-  vec2 pr = p + 5.0 * r * u_frequency;
-  float f1 = smoothstep(0.24, 0.78, fbm4(pr));
-  float f2 = smoothstep(0.34, 0.82, fbm3(p * 1.5 + 3.0 * r * u_frequency + w * 0.8));
-  float f3 = smoothstep(0.44, 0.88, fbm3(p * 2.5 + 2.0 * r * u_frequency + w * 1.2));
-
-  float nebulaDensity = f1 * f1 * 0.8 + f2 * f2 * 0.5 + f3 * f3 * f3 * 0.3;
-  nebulaDensity = clamp(nebulaDensity * u_amplitude * 1.5, 0.0, 1.0);
-
-  float dustLane = fbm3(p * 4.0 + r * 2.0 + seed);
-  float dustMask = smoothstep(0.35, 0.5, dustLane) * smoothstep(0.65, 0.5, dustLane);
-  nebulaDensity *= 1.0 - dustMask * 0.55;
-
-  float ridge1 = abs(fbm3(p * 6.0 + r * 3.0) - 0.5);
-  float ridge2 = abs(fbm3(p * 3.2 + r * 4.5 + w * 2.0 + 13.7) - 0.5);
-  float filament = smoothstep(0.05, 0.0, ridge1) * 0.3;
-  float tendril = smoothstep(0.04, 0.0, ridge2);
-  nebulaDensity = clamp(nebulaDensity + filament * nebulaDensity, 0.0, 1.0);
-
-  nebulaDensity *= spatialFade;
-
-  float screenPLen2 = dot(screenP, screenP);
-  float revealMask = smoothstep(reveal * 2.0 + 0.3 + q.x * 0.3, reveal * 2.0 - 0.2, sqrt(screenPLen2));
-  nebulaDensity *= revealMask;
-
-  float zone1 = fbm3(p * 0.7 + seed * 0.5 + time * 0.05);
-  float zone2 = fbm3(p * 0.9 + seed * 0.8 + 15.0);
-
-  float purpleZone = smoothstep(0.35, 0.65, zone2);
-  float pinkZone = smoothstep(0.4, 0.7, 1.0 - zone1) * smoothstep(0.3, 0.7, zone2);
-  float blueZone = smoothstep(0.3, 0.7, zone1);
-
   vec3 c_space = vec3(0.016, 0.01, 0.035);
-  float edgeFactor = smoothstep(0.3, 0.0, nebulaDensity);
-
-  vec3 purple = mix(vec3(0.15, 0.08, 0.22), vec3(0.42, 0.25, 0.55), f1);
-  purple = mix(purple, vec3(0.58, 0.42, 0.72), f2 * 0.7);
-  purple = mix(purple, vec3(0.25, 0.12, 0.45), edgeFactor * 0.4);
-
-  vec3 pink = mix(vec3(0.45, 0.18, 0.35), vec3(0.78, 0.42, 0.65), f1);
-  pink = mix(pink, vec3(0.92, 0.58, 0.78), f2 * 0.7);
-  pink = mix(pink, vec3(0.65, 0.25, 0.55), edgeFactor * 0.3);
-
-  vec3 blue = mix(vec3(0.08, 0.12, 0.28), vec3(0.28, 0.52, 0.78), f1);
-  blue = mix(blue, vec3(0.42, 0.68, 0.88), f2 * 0.7);
-  blue = mix(blue, vec3(0.15, 0.25, 0.55), edgeFactor * 0.35);
-
-  vec3 nebula = c_space;
-  nebula = mix(nebula, purple, purpleZone * nebulaDensity * 1.2);
-  nebula = mix(nebula, pink, pinkZone * nebulaDensity * 1.1);
-  nebula = mix(nebula, blue, blueZone * nebulaDensity);
-
-  float d2core = nebulaDensity * nebulaDensity;
-  float coreBrightness = d2core * d2core * 0.25;
-  nebula += vec3(1.0, 0.9, 0.88) * coreBrightness * (purpleZone + pinkZone * 0.9);
-
-  float warmZone = smoothstep(0.55, 0.8, fbm3(p * 1.1 + seed * 1.7 + 42.0));
-  nebula = mix(nebula, vec3(0.95, 0.55, 0.3), warmZone * pinkZone * d2core * 0.35);
-
-  float tendrilGlow = tendril * nebulaDensity * (0.45 + 0.55 * pinkZone);
-  nebula += vec3(0.92, 0.7, 1.0) * tendrilGlow * 0.35;
-
-  nebula = mix(c_space, nebula, min(0.7 + nebulaDensity * 0.8, 1.1));
-
-  float glowReveal = smoothstep(0.0, 0.6, reveal);
-  vec2 g1 = screenP - vec2(0.25, 0.1);
-  vec2 g2 = screenP - vec2(-0.3, 0.05);
-  vec2 g3 = screenP - vec2(0.0, 0.15);
-  float glow1 = 1.0 / (1.0 + dot(g1, g1) * 6.25) * glowReveal * spatialFade;
-  float glow2 = 1.0 / (1.0 + dot(g2, g2) * 9.0) * glowReveal * spatialFade;
-  float glow3 = 1.0 / (1.0 + dot(g3, g3) * 3.24) * glowReveal * spatialFade;
-  
-  nebula += vec3(0.98, 0.82, 0.92) * glow1 * 0.08 * (pinkZone + purpleZone);
-  nebula += vec3(0.75, 0.88, 0.98) * glow2 * 0.06 * (blueZone + purpleZone * 0.5);
-  nebula += vec3(0.9, 0.8, 0.95) * glow3 * 0.04 * nebulaDensity;
-
-  float scatter = d2core * 0.6 * 0.12;
-  vec3 scatterColor = mix(vec3(0.6, 0.5, 0.8), vec3(0.9, 0.7, 0.85), pinkZone);
-  nebula += scatterColor * scatter * glowReveal * spatialFade;
-
   vec2 worldUV = fragCoord / iResolution.xy - vec2(0.0, u_scrollY / viewH);
   float spaceDust = fbm3(worldUV * 3.0 + seed * 0.1) * 0.008;
   vec3 spaceBg = c_space + vec3(spaceDust * 0.15, spaceDust * 0.08, spaceDust * 0.25);
 
-  nebula = mix(spaceBg, nebula, spatialFade);
+  // Past 1.5 screens of scroll the nebula is faded out completely, so skip its noise.
+  float nebulaDensity = 0.0;
+  vec3 nebula = spaceBg;
+
+  if (spatialFade > 0.0) {
+    vec2 q = vec2(fbm4(p + time * 0.3), fbm4(p + 5.0));
+    vec2 r = vec2(fbm3(p + 4.0 * q + time * 0.5), fbm3(p + 4.0 * q + 8.0));
+    vec2 w = vec2(fbm3(p * 1.3 + 3.0 * r + time * 0.2), fbm3(p * 1.3 + 3.0 * r + 21.0));
+
+    vec2 pr = p + 5.0 * r * u_frequency;
+    float f1 = smoothstep(0.24, 0.78, fbm4(pr));
+    float f2 = smoothstep(0.34, 0.82, fbm3(p * 1.5 + 3.0 * r * u_frequency + w * 0.8));
+    float f3 = smoothstep(0.44, 0.88, fbm3(p * 2.5 + 2.0 * r * u_frequency + w * 1.2));
+
+    nebulaDensity = f1 * f1 * 0.8 + f2 * f2 * 0.5 + f3 * f3 * f3 * 0.3;
+    nebulaDensity = clamp(nebulaDensity * u_amplitude * 1.5, 0.0, 1.0);
+
+    float dustLane = fbm3(p * 4.0 + r * 2.0 + seed);
+    float dustMask = smoothstep(0.35, 0.5, dustLane) * smoothstep(0.65, 0.5, dustLane);
+    nebulaDensity *= 1.0 - dustMask * 0.55;
+
+    float ridge1 = abs(fbm3(p * 6.0 + r * 3.0) - 0.5);
+    float ridge2 = abs(fbm3(p * 3.2 + r * 4.5 + w * 2.0 + 13.7) - 0.5);
+    float filament = smoothstep(0.05, 0.0, ridge1) * 0.3;
+    float tendril = smoothstep(0.04, 0.0, ridge2);
+    nebulaDensity = clamp(nebulaDensity + filament * nebulaDensity, 0.0, 1.0);
+
+    nebulaDensity *= spatialFade;
+
+    float screenPLen2 = dot(screenP, screenP);
+    float revealMask = smoothstep(reveal * 2.0 + 0.3 + q.x * 0.3, reveal * 2.0 - 0.2, sqrt(screenPLen2));
+    nebulaDensity *= revealMask;
+
+    float zone1 = fbm3(p * 0.7 + seed * 0.5 + time * 0.05);
+    float zone2 = fbm3(p * 0.9 + seed * 0.8 + 15.0);
+
+    float purpleZone = smoothstep(0.35, 0.65, zone2);
+    float pinkZone = smoothstep(0.4, 0.7, 1.0 - zone1) * smoothstep(0.3, 0.7, zone2);
+    float blueZone = smoothstep(0.3, 0.7, zone1);
+
+    float edgeFactor = smoothstep(0.3, 0.0, nebulaDensity);
+
+    vec3 purple = mix(vec3(0.15, 0.08, 0.22), vec3(0.42, 0.25, 0.55), f1);
+    purple = mix(purple, vec3(0.58, 0.42, 0.72), f2 * 0.7);
+    purple = mix(purple, vec3(0.25, 0.12, 0.45), edgeFactor * 0.4);
+
+    vec3 pink = mix(vec3(0.45, 0.18, 0.35), vec3(0.78, 0.42, 0.65), f1);
+    pink = mix(pink, vec3(0.92, 0.58, 0.78), f2 * 0.7);
+    pink = mix(pink, vec3(0.65, 0.25, 0.55), edgeFactor * 0.3);
+
+    vec3 blue = mix(vec3(0.08, 0.12, 0.28), vec3(0.28, 0.52, 0.78), f1);
+    blue = mix(blue, vec3(0.42, 0.68, 0.88), f2 * 0.7);
+    blue = mix(blue, vec3(0.15, 0.25, 0.55), edgeFactor * 0.35);
+
+    nebula = c_space;
+    nebula = mix(nebula, purple, purpleZone * nebulaDensity * 1.2);
+    nebula = mix(nebula, pink, pinkZone * nebulaDensity * 1.1);
+    nebula = mix(nebula, blue, blueZone * nebulaDensity);
+
+    float d2core = nebulaDensity * nebulaDensity;
+    float coreBrightness = d2core * d2core * 0.25;
+    nebula += vec3(1.0, 0.9, 0.88) * coreBrightness * (purpleZone + pinkZone * 0.9);
+
+    float warmZone = smoothstep(0.55, 0.8, fbm3(p * 1.1 + seed * 1.7 + 42.0));
+    nebula = mix(nebula, vec3(0.95, 0.55, 0.3), warmZone * pinkZone * d2core * 0.35);
+
+    float tendrilGlow = tendril * nebulaDensity * (0.45 + 0.55 * pinkZone);
+    nebula += vec3(0.92, 0.7, 1.0) * tendrilGlow * 0.35;
+
+    nebula = mix(c_space, nebula, min(0.7 + nebulaDensity * 0.8, 1.1));
+
+    float glowReveal = smoothstep(0.0, 0.6, reveal);
+    vec2 g1 = screenP - vec2(0.25, 0.1);
+    vec2 g2 = screenP - vec2(-0.3, 0.05);
+    vec2 g3 = screenP - vec2(0.0, 0.15);
+    float glow1 = 1.0 / (1.0 + dot(g1, g1) * 6.25) * glowReveal * spatialFade;
+    float glow2 = 1.0 / (1.0 + dot(g2, g2) * 9.0) * glowReveal * spatialFade;
+    float glow3 = 1.0 / (1.0 + dot(g3, g3) * 3.24) * glowReveal * spatialFade;
+  
+    nebula += vec3(0.98, 0.82, 0.92) * glow1 * 0.08 * (pinkZone + purpleZone);
+    nebula += vec3(0.75, 0.88, 0.98) * glow2 * 0.06 * (blueZone + purpleZone * 0.5);
+    nebula += vec3(0.9, 0.8, 0.95) * glow3 * 0.04 * nebulaDensity;
+
+    float scatter = d2core * 0.6 * 0.12;
+    vec3 scatterColor = mix(vec3(0.6, 0.5, 0.8), vec3(0.9, 0.7, 0.85), pinkZone);
+    nebula += scatterColor * scatter * glowReveal * spatialFade;
+
+    nebula = mix(spaceBg, nebula, spatialFade);
+  }
 
   float luma = dot(nebula, vec3(0.299, 0.587, 0.114));
   nebula = mix(vec3(luma) * vec3(0.92, 0.86, 1.06), nebula, 1.16);
