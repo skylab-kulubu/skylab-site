@@ -418,6 +418,9 @@ export default function EventsSection() {
 
           <div
             ref={scrollRef}
+            role="region"
+            aria-label="Etkinlikler"
+            tabIndex={0}
             className="cms-events-row flex gap-5 md:gap-6 items-stretch overflow-x-auto scroll-smooth pt-10 pb-10 px-12 -mx-12 [&::-webkit-scrollbar]:hidden"
             style={{
               scrollbarWidth: "none",

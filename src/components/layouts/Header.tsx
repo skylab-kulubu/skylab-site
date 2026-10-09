@@ -251,6 +251,7 @@ export default function Header() {
                   sectionId: "home",
                 })
               }
+              aria-label="SKY LAB ana sayfa"
               className="flex items-center h-full py-2"
             >
               <SkyLabLogo />

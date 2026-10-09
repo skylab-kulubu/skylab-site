@@ -25,7 +25,7 @@ export default function Home() {
       />
       <Header />
         <div className="min-h-screen bg-transparent overflow-x-clip">
-          <main className="relative z-10 w-full">
+          <div className="relative z-10 w-full">
             <section
               id="home"
               className="relative min-h-svh w-full overflow-hidden flex flex-col"
@@ -62,7 +62,7 @@ export default function Home() {
                 <Footer />
               </div>
             </section>
-          </main>
+          </div>
         </div>
     </>
   );
