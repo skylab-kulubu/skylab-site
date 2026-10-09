@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BadgeCheck, BadgeX, Download, House, ShieldCheck } from "lucide-react";
 import Header from "@/components/layouts/Header";
+import { certificateLookupUrl } from "@/lib/certificate-lookup";
 
 export const dynamic = "force-dynamic";
 
@@ -34,16 +35,14 @@ type LookupResult =
 
 // Existing certificates used 64-bit serials; new certificates use 128-bit serials.
 const SERIAL_PATTERN = /^(?:[A-Fa-f0-9]{16}|[A-Fa-f0-9]{32})$/;
-const coreApi = (
-  process.env.CORE_API_URL ?? "https://api.yildizskylab.com"
-).replace(/\/+$/, "");
 
 async function findCertificate(serial: string): Promise<LookupResult> {
   if (!SERIAL_PATTERN.test(serial)) return { kind: "not-found" };
 
   try {
+    // CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts.
     const response = await fetch(
-      `${coreApi}/v1/public/certificates/${serial.toUpperCase()}`,
+      certificateLookupUrl(process.env.CORE_API_ORIGIN, serial),
       { cache: "no-store" },
     );
     if (response.status === 404) return { kind: "not-found" };
