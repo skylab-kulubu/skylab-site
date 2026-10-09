@@ -63,7 +63,6 @@ function FeaturedEventSpotlight({
       className="liquid-glass group relative overflow-hidden rounded-3xl transition-all duration-500 hover:-translate-y-1"
       style={{ "--c-rgb": rgb } as React.CSSProperties}
     >
-      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/6 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-20" />
       <div className="flex flex-col md:flex-row">
         {imgSrc && (
           <div className="relative w-full md:w-2/5 aspect-video md:aspect-auto md:min-h-70 overflow-hidden shrink-0">
@@ -538,7 +537,6 @@ export default function EventsSection() {
                       )}
                       style={cardStyle}
                     >
-                      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                       <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"

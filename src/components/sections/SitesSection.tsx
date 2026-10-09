@@ -217,7 +217,6 @@ export default function SitesSection() {
                     )}
                     style={cardStyle}
                   >
-                    <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                     <div
                       className={cn(
@@ -329,7 +328,7 @@ export default function SitesSection() {
             }}
           />
           <div
-            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+            className="h-1.5 w-1.5 rounded-full bg-purple-400/60"
             style={{ animationDuration: "2s" }}
           />
           <div
