@@ -163,7 +163,6 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
 }
 
 .liquid-glass {

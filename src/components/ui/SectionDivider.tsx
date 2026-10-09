@@ -30,7 +30,7 @@ export function SectionDivider({
         }}
       />
       <div
-        className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+        className="h-1.5 w-1.5 rounded-full bg-purple-400/60"
         style={{ animationDuration: "2s" }}
       />
       <div

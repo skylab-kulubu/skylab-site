@@ -393,7 +393,6 @@ export default function BoardSection() {
                           } as React.CSSProperties
                         }
                       >
-                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -529,7 +528,6 @@ export default function BoardSection() {
                           } as React.CSSProperties
                         }
                       >
-                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -619,7 +617,7 @@ export default function BoardSection() {
             }}
           />
           <div
-            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+            className="h-1.5 w-1.5 rounded-full bg-purple-400/60"
             style={{ animationDuration: "2s" }}
           />
           <div

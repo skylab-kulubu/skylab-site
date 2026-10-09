@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
-import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import MotionPrefs from "@/components/providers/MotionPrefs";
 import { CmsPage } from "@/lib/cms";
@@ -36,7 +35,6 @@ export default function RootLayout({
       >
         <MotionPrefs>
           <ScrollProgress/>
-          <CursorGlow />
           <CmsPage>
             <main>{children}</main>
           </CmsPage>

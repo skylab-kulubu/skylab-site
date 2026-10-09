@@ -34,23 +34,20 @@ export default function FeaturesSection() {
 
   const colorClasses = {
     blue: {
-      glow: "bg-blue-500/20",
       icon: "text-blue-300",
-      iconGlow: "drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]",
+      iconGlow: "drop-shadow-[0_0_10px_rgba(59,130,246,0.45)]",
       line: "via-blue-400",
       lineShadow: "group-hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]",
     },
     purple: {
-      glow: "bg-purple-500/20",
       icon: "text-purple-300",
-      iconGlow: "drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]",
+      iconGlow: "drop-shadow-[0_0_10px_rgba(168,85,247,0.45)]",
       line: "via-purple-400",
       lineShadow: "group-hover:drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]",
     },
     pink: {
-      glow: "bg-pink-500/20",
       icon: "text-pink-300",
-      iconGlow: "drop-shadow-[0_0_15px_rgba(236,72,153,0.8)]",
+      iconGlow: "drop-shadow-[0_0_10px_rgba(236,72,153,0.45)]",
       line: "via-pink-400",
       lineShadow: "group-hover:drop-shadow-[0_0_10px_rgba(236,72,153,0.8)]",
     },
@@ -110,9 +107,6 @@ export default function FeaturesSection() {
                       style={{ transitionDelay: `${400 + index * 150}ms` }}
                     >
                       <div className="relative">
-                        <div
-                          className={`absolute -inset-4 ${colors.glow} rounded-full blur-2xl opacity-50 group-hover:opacity-100 group-hover:blur-3xl transition-all duration-700`}
-                        />
 
                         <div className="relative w-20 h-20 flex items-center justify-center">
                           <Icon

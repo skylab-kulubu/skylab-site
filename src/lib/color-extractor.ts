@@ -2,6 +2,11 @@ export type RGB = { r: number; g: number; b: number };
 
 const colorCache = new Map<string, RGB>();
 
+// The colour comes from a 50px sample, so ask the image optimizer for a 64px copy
+// instead of downloading the multi-MB original.
+const thumbnail = (src: string) =>
+  `/_next/image?url=${encodeURIComponent(src)}&w=64&q=50`;
+
 export const extractDominantColor = (src: string): Promise<RGB> => {
   const cached = colorCache.get(src);
   if (cached) return Promise.resolve(cached);
@@ -9,7 +14,8 @@ export const extractDominantColor = (src: string): Promise<RGB> => {
   return new Promise((resolve, reject) => {
     const img = document.createElement("img");
     img.crossOrigin = "anonymous";
-    img.src = src;
+    let triedOriginal = false;
+    img.src = thumbnail(src);
 
     img.onload = () => {
       try {
@@ -59,6 +65,10 @@ export const extractDominantColor = (src: string): Promise<RGB> => {
       }
     };
 
-    img.onerror = reject;
+    img.onerror = (event) => {
+      if (triedOriginal) return reject(event);
+      triedOriginal = true;
+      img.src = src;
+    };
   });
 };
