@@ -268,7 +268,7 @@ export default function SitesSection() {
                         >
                           <h3
                             className={cn(
-                              "text-lg md:text-xl font-bold truncate transition-colors duration-300",
+                              "min-w-0 text-lg md:text-xl font-bold line-clamp-2 wrap-break-word transition-colors duration-300",
                               isTouch
                                 ? "text-[rgb(var(--c-bright))]"
                                 : "text-white group-hover:text-[rgb(var(--c-bright))]",
