@@ -271,14 +271,14 @@ export default function Footer() {
               )}
               style={{ transitionDelay: "250ms" }}
             >
-              <div className="h-16 flex items-center mb-6 overflow-hidden">
+              <div className="h-16 w-full flex items-center mb-6 overflow-hidden">
                 <Image
                   src="/img/ytulogo.png"
                   alt="Yıldız Teknik Üniversitesi"
-                  width={64}
-                  height={64}
-                  className="h-16 w-auto object-contain"
-                  style={{ width: "auto", height: "auto" }}
+                  width={3026}
+                  height={577}
+                  sizes="(max-width: 768px) 90vw, 320px"
+                  className="h-auto w-full object-contain"
                   loading="lazy"
                 />
               </div>
