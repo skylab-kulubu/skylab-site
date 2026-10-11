@@ -165,10 +165,10 @@ export default function Footer() {
           )}
         />
         <div className="relative max-w-7xl mx-auto pt-28 pb-16 px-4 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-slate-300">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 md:gap-12 text-slate-300">
             <div
               className={cn(
-                "space-y-6 lg:col-span-1 transition-all duration-700 ease-out",
+                "col-span-2 md:col-span-1 space-y-6 transition-all duration-700 ease-out",
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8",
@@ -266,19 +266,19 @@ export default function Footer() {
 
             <div
               className={cn(
-                "flex flex-col items-start lg:items-end justify-start transition-opacity duration-700 ease-out",
+                "col-span-2 md:col-span-1 flex flex-col items-start lg:items-end justify-start transition-opacity duration-700 ease-out",
                 isVisible ? "opacity-100" : "opacity-0",
               )}
               style={{ transitionDelay: "250ms" }}
             >
-              <div className="h-16 flex items-center mb-6 overflow-hidden">
+              <div className="h-16 w-full flex items-center mb-6 overflow-hidden">
                 <Image
                   src="/img/ytulogo.png"
                   alt="Yıldız Teknik Üniversitesi"
-                  width={64}
-                  height={64}
-                  className="h-16 w-auto object-contain"
-                  style={{ width: "auto", height: "auto" }}
+                  width={3026}
+                  height={577}
+                  sizes="(max-width: 768px) 90vw, 320px"
+                  className="h-auto w-full max-w-80 object-contain"
                   loading="lazy"
                 />
               </div>

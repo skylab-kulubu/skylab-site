@@ -63,7 +63,6 @@ function FeaturedEventSpotlight({
       className="liquid-glass group relative overflow-hidden rounded-3xl transition-all duration-500 hover:-translate-y-1"
       style={{ "--c-rgb": rgb } as React.CSSProperties}
     >
-      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/6 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-20" />
       <div className="flex flex-col md:flex-row">
         {imgSrc && (
           <div className="relative w-full md:w-2/5 aspect-video md:aspect-auto md:min-h-70 overflow-hidden shrink-0">
@@ -213,7 +212,7 @@ export default function EventsSection() {
   const rafRef = useRef<number>(0);
 
   const eventsBlock = useCmsBlock("events.list", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const eventsList = Array.isArray(eventsBlock.value)
@@ -419,6 +418,9 @@ export default function EventsSection() {
 
           <div
             ref={scrollRef}
+            role="region"
+            aria-label="Etkinlikler"
+            tabIndex={0}
             className="cms-events-row flex gap-5 md:gap-6 items-stretch overflow-x-auto scroll-smooth pt-10 pb-10 px-12 -mx-12 [&::-webkit-scrollbar]:hidden"
             style={{
               scrollbarWidth: "none",
@@ -429,20 +431,20 @@ export default function EventsSection() {
             <EditableList
               blockPath="events.list"
               itemSchema={{
-                id: { blockType: "Text", defaultValue: "" },
-                title: { blockType: "Text", defaultValue: "" },
-                slug: { blockType: "Text", defaultValue: "" },
+                id: { blockType: "ShortText", defaultValue: "" },
+                title: { blockType: "ShortText", defaultValue: "" },
+                slug: { blockType: "ShortText", defaultValue: "" },
                 description: { blockType: "RichText", defaultValue: "" },
-                shortDescription: { blockType: "Text", defaultValue: "" },
+                shortDescription: { blockType: "LongText", defaultValue: "" },
                 image: {
                   blockType: "Image",
                   defaultValue: { src: "", alt: "" },
                 },
-                category: { blockType: "Text", defaultValue: "Zirve" },
-                tags: { blockType: "Text", defaultValue: "Networking" },
-                url: { blockType: "Text", defaultValue: "" },
-                date: { blockType: "Text", defaultValue: "" },
-                featured: { blockType: "Text", defaultValue: "false" },
+                category: { blockType: "ShortText", defaultValue: "Zirve" },
+                tags: { blockType: "ShortText", defaultValue: "Networking" },
+                url: { blockType: "ShortText", defaultValue: "" },
+                date: { blockType: "ShortText", defaultValue: "" },
+                featured: { blockType: "ShortText", defaultValue: "false" },
               }}
               defaultValue={[]}
             >
@@ -538,7 +540,6 @@ export default function EventsSection() {
                       )}
                       style={cardStyle}
                     >
-                      <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                       <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20"

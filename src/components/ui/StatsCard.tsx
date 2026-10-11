@@ -85,7 +85,7 @@ export function StatsCard({
 
         <div className="flex flex-col items-center gap-y-1 sm:gap-y-1.5">
           <span
-            className="inline-block bg-linear-to-br from-white via-white to-purple-200 bg-clip-text text-3xl sm:text-5xl md:text-6xl font-bold text-transparent tracking-tight transition-transform duration-500 group-hover:scale-105"
+            className="inline-block bg-linear-to-br from-white via-white to-purple-200 bg-clip-text text-[1.75rem] sm:text-5xl md:text-6xl font-bold text-transparent tracking-tight transition-transform duration-500 group-hover:scale-105"
             style={{
               filter: "drop-shadow(0 2px 10px rgba(0, 0, 0, 0.3))",
               WebkitBackgroundClip: "text",
