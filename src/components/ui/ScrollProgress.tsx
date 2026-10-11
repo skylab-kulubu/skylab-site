@@ -1,5 +1,6 @@
 // components/ScrollProgress.tsx
 "use client";
+import { usePathname } from "next/navigation";
 import { motion, useScroll, useSpring } from "framer-motion";
 
 export default function ScrollProgress() {
@@ -10,6 +11,10 @@ export default function ScrollProgress() {
     damping: 30,
     restDelta: 0.001,
   });
+  const pathname = usePathname();
+
+  // The pages drawn with skylcn-ui (SkylcnScope) carry no decorative bar.
+  if (pathname.startsWith("/kapi/") || pathname.startsWith("/sertifika/")) return null;
 
   return (
     <motion.div
