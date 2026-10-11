@@ -18,14 +18,14 @@ import { extractDominantColor } from "@/lib/color-extractor";
 import type { RGB } from "@/lib/data/types";
 
 const boardMemberSchema = {
-  id: { blockType: "Text" as const, defaultValue: "" },
-  name: { blockType: "Text" as const, defaultValue: "" },
-  position: { blockType: "Text" as const, defaultValue: "" },
+  id: { blockType: "ShortText" as const, defaultValue: "" },
+  name: { blockType: "ShortText" as const, defaultValue: "" },
+  position: { blockType: "ShortText" as const, defaultValue: "" },
   image: { blockType: "Image" as const, defaultValue: { src: "", alt: "" } },
-  linkedin: { blockType: "Text" as const, defaultValue: "" },
-  github: { blockType: "Text" as const, defaultValue: "" },
-  twitter: { blockType: "Text" as const, defaultValue: "" },
-  instagram: { blockType: "Text" as const, defaultValue: "" },
+  linkedin: { blockType: "ShortText" as const, defaultValue: "" },
+  github: { blockType: "ShortText" as const, defaultValue: "" },
+  twitter: { blockType: "ShortText" as const, defaultValue: "" },
+  instagram: { blockType: "ShortText" as const, defaultValue: "" },
 };
 
 const defaultManagement: any[] = [];
@@ -55,11 +55,11 @@ export default function BoardSection() {
   const { ref: sectionRef, isVisible } = useScrollReveal(0.15);
 
   const managementBlocks = useCmsBlock("board.management", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
   const supervisionBlocks = useCmsBlock("board.supervision", {
-    blockType: "List",
+    blockType: "ObjectArray",
     defaultValue: [],
   });
 
@@ -330,17 +330,17 @@ export default function BoardSection() {
               <EditableList
                 blockPath="board.management"
                 itemSchema={{
-                  id: { blockType: "Text", defaultValue: "" },
-                  name: { blockType: "Text", defaultValue: "" },
-                  position: { blockType: "Text", defaultValue: "" },
+                  id: { blockType: "ShortText", defaultValue: "" },
+                  name: { blockType: "ShortText", defaultValue: "" },
+                  position: { blockType: "ShortText", defaultValue: "" },
                   image: {
                     blockType: "Image",
                     defaultValue: { src: "", alt: "" },
                   },
-                  linkedin: { blockType: "Text", defaultValue: "" },
-                  github: { blockType: "Text", defaultValue: "" },
-                  twitter: { blockType: "Text", defaultValue: "" },
-                  instagram: { blockType: "Text", defaultValue: "" },
+                  linkedin: { blockType: "ShortText", defaultValue: "" },
+                  github: { blockType: "ShortText", defaultValue: "" },
+                  twitter: { blockType: "ShortText", defaultValue: "" },
+                  instagram: { blockType: "ShortText", defaultValue: "" },
                 }}
                 defaultValue={[]}
               >
@@ -393,7 +393,6 @@ export default function BoardSection() {
                           } as React.CSSProperties
                         }
                       >
-                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -466,17 +465,17 @@ export default function BoardSection() {
               <EditableList
                 blockPath="board.supervision"
                 itemSchema={{
-                  id: { blockType: "Text", defaultValue: "" },
-                  name: { blockType: "Text", defaultValue: "" },
-                  position: { blockType: "Text", defaultValue: "" },
+                  id: { blockType: "ShortText", defaultValue: "" },
+                  name: { blockType: "ShortText", defaultValue: "" },
+                  position: { blockType: "ShortText", defaultValue: "" },
                   image: {
                     blockType: "Image",
                     defaultValue: { src: "", alt: "" },
                   },
-                  linkedin: { blockType: "Text", defaultValue: "" },
-                  github: { blockType: "Text", defaultValue: "" },
-                  twitter: { blockType: "Text", defaultValue: "" },
-                  instagram: { blockType: "Text", defaultValue: "" },
+                  linkedin: { blockType: "ShortText", defaultValue: "" },
+                  github: { blockType: "ShortText", defaultValue: "" },
+                  twitter: { blockType: "ShortText", defaultValue: "" },
+                  instagram: { blockType: "ShortText", defaultValue: "" },
                 }}
                 defaultValue={[]}
               >
@@ -529,7 +528,6 @@ export default function BoardSection() {
                           } as React.CSSProperties
                         }
                       >
-                        <div className="pointer-events-none absolute inset-0 translate-x-[-150%] -skew-x-12 bg-linear-to-r from-transparent via-white/8 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-[150%] z-30" />
 
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20 bg-linear-to-br from-purple-500/10 to-transparent" />
 
@@ -619,7 +617,7 @@ export default function BoardSection() {
             }}
           />
           <div
-            className="h-1.5 w-1.5 rounded-full bg-purple-400/60 animate-pulse shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+            className="h-1.5 w-1.5 rounded-full bg-purple-400/60"
             style={{ animationDuration: "2s" }}
           />
           <div

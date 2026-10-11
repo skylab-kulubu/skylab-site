@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
-import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import MotionPrefs from "@/components/providers/MotionPrefs";
+import { CmsPage } from "@/lib/cms";
+import { robotsFor } from "@/lib/search-index";
 
 const manrope = Manrope({
   subsets: ['latin', 'latin-ext'],
@@ -13,19 +14,13 @@ const manrope = Manrope({
   preload: true,
 });
 
-export const metadata: Metadata = {
-  title: "SKY LAB Bilgisayar Bilimleri Kulübü",
-  description: "SKY LAB Bilgisayar Bilimleri Kulübü, Yıldız Teknik Üniversitesi bünyesinde bilişim alanında gelişimi hedefleyen en aktif öğrenci topluluğu.",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      noimageindex: true,
-    },
-  },
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: "SKY LAB Bilgisayar Bilimleri Kulübü",
+    description: "SKY LAB Bilgisayar Bilimleri Kulübü, Yıldız Teknik Üniversitesi bünyesinde bilişim alanında gelişimi hedefleyen en aktif öğrenci topluluğu.",
+    robots: robotsFor(),
+  };
+}
 
 export default function RootLayout({
   children,
@@ -40,8 +35,9 @@ export default function RootLayout({
       >
         <MotionPrefs>
           <ScrollProgress/>
-          <CursorGlow />
-          <main>{children}</main>
+          <CmsPage>
+            <main>{children}</main>
+          </CmsPage>
         </MotionPrefs>
       </body>
     </html>

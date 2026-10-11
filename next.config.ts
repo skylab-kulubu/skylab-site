@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -7,12 +8,33 @@ const nextConfig: NextConfig = {
   // API_BASE_URL of its own, so the value is fixed at build time.
   env: { CORE_API_ORIGIN: process.env.API_BASE_URL ?? "" },
   reactCompiler: true,
-  images: { unoptimized: true },
+  // Uploaded images are served by the club's CDN as the originals the editors dropped in
+  // (several MB each), so the image optimizer resizes them to what the page shows.
+  // SVG logos have no file extension on the CDN, so they pass through the optimizer unchanged.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.yildizskylab.com" },
+      { protocol: "https", hostname: "sandbox-cdn.yildizskylab.com" },
+    ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    qualities: [50, 75],
+    minimumCacheTTL: 60 * 60 * 24 * 7,
+  },
   async headers() {
     return [
       {
         source: "/img/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      {
+        // The door check-in page carries a short-lived door token in its address:
+        // keep it out of search results and out of the Referer of anything it loads.
+        source: "/kapi/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
       },
     ];
   },
@@ -43,4 +65,27 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Local development only (`next dev`). The club's edge does not let a page on
+// http://localhost:3000 call its hosts cross-origin, so the CMS editor in the browser calls
+// this dev server on its own origin and the server forwards /sandbox-api/* to the sandbox API,
+// never to production. Locally CMS_URL=http://localhost:3000/sandbox-api/api (README).
+// `next build` never adds this rewrite, so the image forwards nothing.
+const sandboxApi = {
+  source: "/sandbox-api/:path*",
+  destination: "https://sandbox-api.yildizskylab.com/:path*",
+};
+
+export default function config(phase: string): NextConfig {
+  if (phase !== PHASE_DEVELOPMENT_SERVER) return nextConfig;
+  const cms = process.env.CMS_URL ?? "";
+  if (/^https:\/\/([\w-]+\.)*yildizskylab\.com(\/|$)/.test(cms)) {
+    console.warn(
+      `⚠ CMS_URL=${cms}: the editor's browser would call that host from http://localhost:3000, which the edge does not allow. Use http://localhost:3000/sandbox-api/api (README).`,
+    );
+  } else if (cms.startsWith("http://localhost") && !process.env.API_BASE_URL) {
+    console.warn(
+      "⚠ API_BASE_URL is not set: CMS image uploads would go to this dev server instead of core. Set API_BASE_URL=https://sandbox-api.yildizskylab.com (README).",
+    );
+  }
+  return { ...nextConfig, rewrites: async () => [sandboxApi] };
+}
