@@ -5,3 +5,9 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # ADR 0055 / ADR 0064: @skylab-kulubu/* packages (skylcn-ui) come weekly
+    # in one grouped PR; other dependencies keep their own PRs as before.
+    groups:
+      skylab-kulubu:
+        patterns:
+          - "@skylab-kulubu/*"
