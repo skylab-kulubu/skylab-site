@@ -70,3 +70,11 @@ A guest without an account checks in to an event Session at the door. The door s
 - The call goes from the browser, not through this site's server, because core limits failed attempts per client address: through a server every guest would share one address. The edge's CORS (`cors-pub`) allows `https://yildizskylab.com` and `https://sandbox.yildizskylab.com`.
 - The page is `noindex`, sends no Referer, keeps the e-mail only in memory and takes `dq` out of the address bar after it loads.
 - Core builds the QR's address from `DOOR_QR_GUEST_URL` (core's environment): `https://yildizskylab.com/kapi/{sessionId}` in production, `https://sandbox.yildizskylab.com/kapi/{sessionId}` in the sandbox.
+
+## skylcn-ui pages (`/kapi`, `/sertifika`)
+
+The door check-in and the certificate check are drawn with [skylcn-ui](https://github.com/skylab-kulubu/skylcn-ui), the club's design system (ADR 0055 in skylab-kulubu/e-skylab). The rest of the site is not, and stays exactly as it is:
+
+- Only `src/components/skylcn/SkylcnScope.tsx` loads skylcn-ui's theme (`skylcn-scope.css`) and the Space Grotesk and Space Mono fonts; the two routes' `layout.tsx` render it. `globals.css` does not import skylcn-ui, since its theme sets the same tokens (`--background`, `--border`, `--radius`…) and base styles on `:root`.
+- These pages use no `next/link`: a stylesheet stays in the document after a client-side navigation, so leaving them is a full page load. `test/skylcn-scope.test.mjs` guards both rules.
+- These pages are always dark, like the rest of the site, which has no theme switch: `SkylcnScope` fixes `data-theme="dark"` on its wrapper and renders no `ThemeScript`, so a light choice (`skylcn:theme`) made in another skylcn-ui product does not apply here.

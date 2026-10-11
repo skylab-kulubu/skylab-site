@@ -10,6 +10,7 @@ import {
   messageFor,
   needsNewScan,
   outcomeFor,
+  presentationFor,
   retryAfterSeconds,
 } from "../src/lib/door-check-in.ts";
 
@@ -105,4 +106,55 @@ test("every outcome has a Turkish message", () => {
   }
   assert.equal(titles.size, outcomes.length);
   assert.equal(messageFor("checked-in").tone, "success");
+});
+
+const ALL_OUTCOMES = [
+  "checked-in",
+  "already-checked-in",
+  "invalid-email",
+  "no-ticket",
+  "session-closed",
+  "scan-required",
+  "qr-invalid",
+  "qr-expired",
+  "qr-used-up",
+  "rate-limited",
+  "unavailable",
+  "network",
+];
+
+test("a final answer replaces the form, any other one sits above it", () => {
+  for (const outcome of ALL_OUTCOMES) {
+    assert.equal(presentationFor(outcome).replacesForm, isFinal(outcome), outcome);
+  }
+});
+
+test("each outcome has its tone and its icon, so it is not told by colour alone", () => {
+  const tones = new Set(["success", "info", "warning", "danger"]);
+  const icons = new Set(["check", "info", "scan", "wait", "offline", "alert"]);
+  for (const outcome of ALL_OUTCOMES) {
+    const view = presentationFor(outcome);
+    assert.ok(tones.has(view.tone), outcome);
+    assert.ok(icons.has(view.icon), outcome);
+  }
+  assert.deepEqual(presentationFor("checked-in"), { tone: "success", icon: "check", replacesForm: true, blamesEmail: false });
+  assert.equal(presentationFor("already-checked-in").tone, "info");
+  for (const outcome of ["scan-required", "qr-invalid", "qr-expired", "qr-used-up"]) {
+    assert.equal(presentationFor(outcome).icon, "scan", outcome);
+  }
+  assert.equal(presentationFor("rate-limited").icon, "wait");
+  assert.equal(presentationFor("network").icon, "offline");
+});
+
+test("only the answers about the address mark the e-mail field wrong", () => {
+  const blamed = ALL_OUTCOMES.filter((outcome) => presentationFor(outcome).blamesEmail);
+  assert.deepEqual(blamed, ["invalid-email", "no-ticket"]);
+});
+
+test("a success or an informational answer is announced politely, the rest as alerts", () => {
+  assert.equal(presentationFor("checked-in").tone === "success" && messageFor("checked-in").tone, "success");
+  for (const outcome of ALL_OUTCOMES) {
+    const polite = presentationFor(outcome).tone === "success" || presentationFor(outcome).tone === "info";
+    assert.equal(polite, messageFor(outcome).tone !== "error", outcome);
+  }
 });
