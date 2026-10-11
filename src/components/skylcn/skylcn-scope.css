@@ -1,0 +1,39 @@
+/*
+ * skylcn-ui, the club's design system (ADR 0055), for the pages drawn with it:
+ * the door check-in (/kapi) and the certificate check (/sertifika). It is wired
+ * the way skylcn-ui's README says, but only SkylcnScope imports it, so it loads
+ * with those two routes and never with the rest of yildizskylab.com. skylcn-ui's
+ * theme sets the same tokens as globals.css (--background, --border, --primary,
+ * --radius…) and its own base styles on :root, so importing it in globals.css
+ * would change every page.
+ *
+ * source(none) keeps this build to those pages' files and skylcn-ui's components
+ * (theme.css adds those), so it does not repeat the site's utilities.
+ */
+@import 'tailwindcss' source(none);
+@import '@skylab-kulubu/skylcn-ui/theme.css';
+
+@source './';
+@source '../door';
+@source '../../app/kapi';
+@source '../../app/sertifika';
+
+/*
+ * globals.css colours every border and outline outside any cascade layer, which
+ * beats every layered rule here, skylcn-ui's components included. Inside these
+ * pages those two fall back to the layers, so the components draw their own lines.
+ */
+.skylcn-scope,
+.skylcn-scope * {
+  border-color: revert-layer;
+  outline-color: revert-layer;
+}
+
+/*
+ * skylcn-ui reads the fonts from --skylcn-font-sans and --skylcn-font-mono on :root.
+ * Here next/font binds them on SkylcnScope's wrapper, so the families are resolved there.
+ */
+.skylcn-scope {
+  --font-family-sans: var(--skylcn-font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-mono: var(--skylcn-font-mono), ui-monospace, SFMono-Regular, monospace;
+}

@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, Info, LoaderCircle, Mail, ScanQrCode } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Button, Card, cn, Field, Input, Notice } from "@skylab-kulubu/skylcn-ui";
+import { CircleAlert, CircleCheck, Clock, Info, Mail, ScanQrCode, WifiOff, type LucideIcon } from "lucide-react";
 import {
   coreApiBase,
   guestCheckInUrl,
   isFinal,
   messageFor,
-  needsNewScan,
   outcomeFor,
+  presentationFor,
   retryAfterSeconds,
   type CheckInOutcome,
+  type OutcomePresentation,
 } from "@/lib/door-check-in";
 
 type Result = { outcome: CheckInOutcome; retryAfter: number | null };
@@ -37,8 +39,6 @@ export default function GuestCheckIn({
     return null;
   });
   const resultRef = useRef<HTMLDivElement>(null);
-  const inputId = useId();
-  const helpId = useId();
 
   // The token is in the address bar; take it out of the browser history.
   // A reload then asks for a new scan, which the short-lived token needs anyway.
@@ -83,84 +83,95 @@ export default function GuestCheckIn({
   }
 
   const message = result ? messageFor(result.outcome, result.retryAfter) : null;
-  const showForm = !(result && (needsNewScan(result.outcome) || result.outcome === "session-closed"));
-  const done = result?.outcome === "checked-in" || result?.outcome === "already-checked-in";
+  const view = result ? presentationFor(result.outcome) : null;
 
-  return (
-    <div className="flex flex-col gap-6">
-      {result && message ? (
-        <div
-          ref={resultRef}
-          tabIndex={-1}
-          role={message.tone === "error" ? "alert" : "status"}
-          className={`flex gap-3 rounded-2xl border px-4 py-4 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
-            message.tone === "success"
-              ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
-              : message.tone === "info"
-                ? "border-indigo-300/20 bg-indigo-400/10 text-indigo-100"
-                : "border-rose-300/20 bg-rose-400/10 text-rose-100"
-          }`}
-        >
-          <OutcomeIcon outcome={result.outcome} tone={message.tone} />
-          <div>
-            <p className="text-base font-bold">{message.title}</p>
-            <p className="mt-1 text-sm leading-6 opacity-85">{message.detail}</p>
-          </div>
+  // A final answer takes the form's place: there is nothing left to type.
+  if (result && message && view?.replacesForm) {
+    const Icon = ICONS[view.icon];
+    return (
+      <div
+        ref={resultRef}
+        tabIndex={-1}
+        role={message.tone === "error" ? "alert" : "status"}
+        className={cn(
+          "mt-8 flex enter-rise flex-col gap-4 rounded-xl border p-5 outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+          TONES[view.tone].box,
+        )}
+      >
+        <Icon aria-hidden="true" strokeWidth={1.75} className={cn("size-8 shrink-0", TONES[view.tone].icon)} />
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-lg leading-snug font-semibold text-foreground-strong">{message.title}</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">{message.detail}</p>
         </div>
-      ) : null}
+      </div>
+    );
+  }
 
-      {showForm && !done ? (
-        <form onSubmit={submit} className="flex flex-col gap-4" aria-busy={sending}>
-          <div className="flex flex-col gap-2">
-            <label htmlFor={inputId} className="text-sm font-semibold text-slate-200">
-              E-posta adresiniz
-            </label>
-            <div className="relative">
-              <Mail
-                aria-hidden="true"
-                className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
-              />
-              <input
-                id={inputId}
-                name="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                required
-                maxLength={254}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                disabled={locked}
-                aria-describedby={helpId}
-                placeholder="ornek@eposta.com"
-                className="min-h-12 w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-12 pr-4 text-base text-white placeholder:text-slate-600 focus-visible:border-indigo-300/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-60"
-              />
-            </div>
-            <p id={helpId} className="text-xs leading-5 text-slate-500">
-              Yalnızca girişinizi kaydetmek için kullanılır; bu sayfa adresi saklamaz.
-            </p>
-          </div>
-          <button
-            type="submit"
-            disabled={locked}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#0b0920] transition hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+  // The form is up: say what to type, then ask for it.
+  return (
+    <>
+      <p className="mt-3 text-sm leading-relaxed text-pretty text-muted-foreground">
+        Etkinliğe kayıt olurken kullandığınız e-posta adresini yazın; girişiniz bu oturuma kaydedilsin.
+      </p>
+      <Card className="mt-8 gap-5 p-5">
+        {result && message && view ? (
+          <Notice
+            ref={resultRef}
+            tabIndex={-1}
+            tone={view.tone}
+            title={message.title}
+            role={message.tone === "error" ? "alert" : "status"}
+            className="enter-rise pr-3 outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {sending ? <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
+            {message.detail}
+          </Notice>
+        ) : null}
+
+        <form onSubmit={submit} className="flex flex-col gap-4" aria-busy={sending}>
+          <Field
+            label="E-posta adresiniz"
+            description="Yalnızca girişinizi kaydetmek için kullanılır; bu sayfa adresi saklamaz."
+          >
+            <Input
+              icon={Mail}
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              required
+              maxLength={254}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={locked}
+              aria-invalid={view?.blamesEmail || undefined}
+              placeholder="ornek@eposta.com"
+            />
+          </Field>
+          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={locked} pending={sending}>
             {sending ? "Gönderiliyor…" : "Girişimi yap"}
-          </button>
+          </Button>
         </form>
-      ) : null}
-    </div>
+      </Card>
+    </>
   );
 }
 
-function OutcomeIcon({ outcome, tone }: { outcome: CheckInOutcome; tone: "success" | "info" | "error" }) {
-  const className = "mt-0.5 h-6 w-6 shrink-0";
-  if (tone === "success") return <CircleCheck aria-hidden="true" className={className} />;
-  if (tone === "info") return <Info aria-hidden="true" className={className} />;
-  if (needsNewScan(outcome)) return <ScanQrCode aria-hidden="true" className={className} />;
-  return <CircleAlert aria-hidden="true" className={className} />;
-}
+const ICONS: Record<OutcomePresentation["icon"], LucideIcon> = {
+  check: CircleCheck,
+  info: Info,
+  scan: ScanQrCode,
+  wait: Clock,
+  offline: WifiOff,
+  alert: CircleAlert,
+};
+
+// The same washes skylcn-ui's Notice uses, for the answer that replaces the form.
+const TONES: Record<OutcomePresentation["tone"], { box: string; icon: string }> = {
+  success: { box: "border-success/30 bg-success/5", icon: "text-success" },
+  info: { box: "border-info/30 bg-info/5", icon: "text-info" },
+  warning: { box: "border-warning/30 bg-warning/5", icon: "text-warning" },
+  danger: { box: "border-destructive/30 bg-destructive/5", icon: "text-destructive" },
+};
