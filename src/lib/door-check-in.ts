@@ -102,6 +102,43 @@ export function retryAfterSeconds(header: string | null): number | null {
   return Math.ceil(seconds);
 }
 
+// How the page draws an outcome with skylcn-ui. A final answer takes the
+// form's place, drawn with `icon`; any other one sits above the form, which
+// stays for a retry, as a skylcn-ui Notice that draws its tone's own icon.
+// Every tone comes with an icon, so it is not told by colour alone.
+export type OutcomePresentation = {
+  tone: "success" | "info" | "warning" | "danger";
+  icon: "check" | "info" | "scan" | "wait" | "offline" | "alert";
+  replacesForm: boolean;
+  // Core turned the address down: the e-mail field is marked invalid.
+  blamesEmail: boolean;
+};
+
+export function presentationFor(outcome: CheckInOutcome): OutcomePresentation {
+  const replacesForm = isFinal(outcome);
+  const blamesEmail = outcome === "invalid-email" || outcome === "no-ticket";
+  switch (outcome) {
+    case "checked-in":
+      return { tone: "success", icon: "check", replacesForm, blamesEmail };
+    case "already-checked-in":
+      return { tone: "info", icon: "info", replacesForm, blamesEmail };
+    case "scan-required":
+    case "qr-invalid":
+    case "qr-expired":
+    case "qr-used-up":
+      return { tone: "warning", icon: "scan", replacesForm, blamesEmail };
+    case "session-closed":
+    case "rate-limited":
+      return { tone: "warning", icon: "wait", replacesForm, blamesEmail };
+    case "network":
+      return { tone: "danger", icon: "offline", replacesForm, blamesEmail };
+    case "invalid-email":
+    case "no-ticket":
+    case "unavailable":
+      return { tone: "danger", icon: "alert", replacesForm, blamesEmail };
+  }
+}
+
 export type OutcomeMessage = {
   tone: "success" | "info" | "error";
   title: string;
