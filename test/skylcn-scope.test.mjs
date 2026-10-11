@@ -39,3 +39,12 @@ test("the skylcn-ui pages are left only through full page loads", () => {
   const linking = sources.filter((path) => isScoped(path) && /from ["']next\/link["']/.test(readFileSync(join(root, path), "utf8")));
   assert.deepEqual(linking, []);
 });
+
+// The site has no theme switch and is dark throughout, so these pages are too:
+// no ThemeScript reads a light choice remembered by another skylcn-ui product.
+test("the skylcn-ui pages are always dark", () => {
+  const scope = readFileSync(join(root, "src/components/skylcn/SkylcnScope.tsx"), "utf8");
+  assert.match(scope, /data-theme="dark"/);
+  const choosing = sources.filter((path) => /ThemeScript|useTheme|skylcn:theme/.test(readFileSync(join(root, path), "utf8")));
+  assert.deepEqual(choosing, []);
+});

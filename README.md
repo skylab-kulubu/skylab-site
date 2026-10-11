@@ -77,4 +77,4 @@ The door check-in and the certificate check are drawn with [skylcn-ui](https://g
 
 - Only `src/components/skylcn/SkylcnScope.tsx` loads skylcn-ui's theme (`skylcn-scope.css`) and the Space Grotesk and Space Mono fonts; the two routes' `layout.tsx` render it. `globals.css` does not import skylcn-ui, since its theme sets the same tokens (`--background`, `--border`, `--radius`…) and base styles on `:root`.
 - These pages use no `next/link`: a stylesheet stays in the document after a client-side navigation, so leaving them is a full page load. `test/skylcn-scope.test.mjs` guards both rules.
-- Dark is the default theme; `skylcn:theme` in local storage (light or system) switches it, as in every skylcn-ui product.
+- These pages are always dark, like the rest of the site, which has no theme switch: `SkylcnScope` fixes `data-theme="dark"` on its wrapper and renders no `ThemeScript`, so a light choice (`skylcn:theme`) made in another skylcn-ui product does not apply here.
