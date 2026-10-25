@@ -15,7 +15,7 @@
     "@skylab-kulubu/inscribed-auth": "^0.3.1",
     "@skylab-kulubu/skylcn-ui": "^0.1.3",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.34.3",
+    "framer-motion": "^14.6.0",
     "inscribed": "^5.2.0",
     "lucide-react": "^1.61.0",
     "next": "~16.3.8",
