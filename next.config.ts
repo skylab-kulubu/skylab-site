@@ -3,6 +3,10 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // The commit the image was built from (Dockerfile, NEXT_DEPLOYMENT_ID). While a deploy runs the
+  // old and the new task side by side, a page from one build that reaches the other gets a full
+  // reload instead of a missing chunk or an unknown Server Action. Unset (a local build): none, as before.
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID || undefined,
   // Core's API host for the CMS image bridge (src/app/api/cms-media). The
   // image build sets API_BASE_URL per environment; the running site has no
   // API_BASE_URL of its own, so the value is fixed at build time.
