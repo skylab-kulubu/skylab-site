@@ -53,6 +53,7 @@ jobs:
             API_BASE_URL=${{ steps.environment.outputs.api_url }}
             CMS_URL=${{ steps.environment.outputs.cms_url }}
             NEXT_PUBLIC_FORMS_URL=${{ steps.environment.outputs.forms_url }}
+            NEXT_DEPLOYMENT_ID=${{ github.sha }}
       - name: Notify Dokploy
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
         env:

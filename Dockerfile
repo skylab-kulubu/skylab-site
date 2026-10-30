@@ -14,6 +14,10 @@ ENV CMS_URL=$CMS_URL
 ENV NEXT_PUBLIC_FORMS_URL=$NEXT_PUBLIC_FORMS_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# The commit (CI passes github.sha): next build reads NEXT_DEPLOYMENT_ID as the deploymentId.
+# Optional. After COPY so a new commit does not rebuild the layers above.
+ARG NEXT_DEPLOYMENT_ID
+ENV NEXT_DEPLOYMENT_ID=$NEXT_DEPLOYMENT_ID
 RUN test -n "$API_BASE_URL" \
     && test -n "$CMS_URL" \
     && test -n "$NEXT_PUBLIC_FORMS_URL" \

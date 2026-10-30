@@ -14,6 +14,10 @@ const manrope = Manrope({
   preload: true,
 });
 
+// Every route renders per request (the pages say so too). The layout wraps CmsPage, so this also
+// keeps the built-in 404 (/_not-found) from being prerendered with one task's CMS blocks.
+export const dynamic = "force-dynamic";
+
 export function generateMetadata(): Metadata {
   return {
     title: "SKY LAB Bilgisayar Bilimleri Kulübü",
