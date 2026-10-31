@@ -7,11 +7,24 @@
  * --radius…) and its own base styles on :root, so importing it in globals.css
  * would change every page.
  *
- * source(none) keeps this build to those pages' files and skylcn-ui's components
- * (theme.css adds those), so it does not repeat the site's utilities.
+ * source(none) keeps this build to those pages' files, so it does not repeat the
+ * site's utilities. theme-base.css is the theme without any component; each
+ * sources/*.css points Tailwind at one component the pages render and the files
+ * it imports. A component newly used on these pages adds its line here.
  */
 @import 'tailwindcss' source(none);
-@import '@skylab-kulubu/skylcn-ui/theme.css';
+@import '@skylab-kulubu/skylcn-ui/theme-base.css';
+@import '@skylab-kulubu/skylcn-ui/sources/badge.css';
+@import '@skylab-kulubu/skylcn-ui/sources/button.css';
+@import '@skylab-kulubu/skylcn-ui/sources/card.css';
+/* DescriptionList */
+@import '@skylab-kulubu/skylcn-ui/sources/display-extra.css';
+/* Field, Input */
+@import '@skylab-kulubu/skylcn-ui/sources/field.css';
+/* StatusPage */
+@import '@skylab-kulubu/skylcn-ui/sources/month-calendar.css';
+@import '@skylab-kulubu/skylcn-ui/sources/notice.css';
+@import '@skylab-kulubu/skylcn-ui/sources/skylab-mark.css';
 
 @source './';
 @source '../door';
