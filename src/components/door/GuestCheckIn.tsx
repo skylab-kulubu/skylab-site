@@ -71,8 +71,9 @@ export default function GuestCheckIn({
       });
       const problem = response.ok ? null : await response.json().catch(() => null);
       const code = typeof problem?.code === "string" ? problem.code : null;
+      const reason = typeof problem?.reason === "string" ? problem.reason : null;
       next = {
-        outcome: outcomeFor(response.status, code),
+        outcome: outcomeFor(response.status, code, reason),
         retryAfter: retryAfterSeconds(response.headers.get("Retry-After")),
       };
     } catch {
