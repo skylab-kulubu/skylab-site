@@ -59,12 +59,23 @@ test("each answer of core has its own outcome", () => {
   assert.equal(outcomeFor(502), "unavailable");
 });
 
+test("a closed session says why when core gives the Event's status as the reason", () => {
+  assert.equal(outcomeFor(403, "session_closed", "event_cancelled"), "event-cancelled");
+  assert.equal(outcomeFor(403, "session_closed", "event_not_published"), "event-not-published");
+  assert.equal(outcomeFor(403, "session_closed", null), "session-closed");
+  assert.equal(outcomeFor(403, "session_closed", "something_new"), "session-closed");
+  assert.equal(outcomeFor(403, "door_qr_expired", "event_cancelled"), "qr-expired");
+  assert.match(messageFor("event-cancelled").title, /iptal edildi/);
+  assert.match(messageFor("event-not-published").title, /yayımlanmadı/);
+  assert.equal(messageFor("session-closed").title, "Bu oturum şu an giriş almıyor");
+});
+
 test("a dead QR asks for a new scan and locks the form", () => {
   for (const outcome of ["scan-required", "qr-invalid", "qr-expired", "qr-used-up"]) {
     assert.equal(needsNewScan(outcome), true, outcome);
     assert.equal(isFinal(outcome), true, outcome);
   }
-  for (const outcome of ["checked-in", "already-checked-in", "session-closed"]) {
+  for (const outcome of ["checked-in", "already-checked-in", "session-closed", "event-cancelled", "event-not-published"]) {
     assert.equal(needsNewScan(outcome), false, outcome);
     assert.equal(isFinal(outcome), true, outcome);
   }
@@ -90,6 +101,8 @@ test("every outcome has a Turkish message", () => {
     "invalid-email",
     "no-ticket",
     "session-closed",
+    "event-cancelled",
+    "event-not-published",
     "scan-required",
     "qr-invalid",
     "qr-expired",
