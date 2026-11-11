@@ -39,6 +39,8 @@ export type CheckInOutcome =
   | "invalid-email"
   | "no-ticket"
   | "session-closed"
+  | "event-cancelled"
+  | "event-not-published"
   | "scan-required"
   | "qr-invalid"
   | "qr-expired"
@@ -48,8 +50,10 @@ export type CheckInOutcome =
   | "network";
 
 // Core answers errors as RFC 9457 problems; the branch is chosen by `code`,
-// never by the title text.
-export function outcomeFor(status: number, code?: string | null): CheckInOutcome {
+// never by the title text. A `session_closed` may carry `reason` with the
+// Event's status (core's docs/event-cancel.md, docs/event-drafts.md); any
+// other reason, or none, keeps the general "session closed" answer.
+export function outcomeFor(status: number, code?: string | null, reason?: string | null): CheckInOutcome {
   if (status === 201 || status === 200) return "checked-in";
   if (status === 409) return "already-checked-in";
   if (status === 400) return "invalid-email";
@@ -58,6 +62,8 @@ export function outcomeFor(status: number, code?: string | null): CheckInOutcome
   if (status === 403) {
     switch (code) {
       case "session_closed":
+        if (reason === "event_cancelled") return "event-cancelled";
+        if (reason === "event_not_published") return "event-not-published";
         return "session-closed";
       case "door_qr_required":
         return "scan-required";
@@ -89,6 +95,8 @@ export function isFinal(outcome: CheckInOutcome): boolean {
     outcome === "checked-in" ||
     outcome === "already-checked-in" ||
     outcome === "session-closed" ||
+    outcome === "event-cancelled" ||
+    outcome === "event-not-published" ||
     needsNewScan(outcome)
   );
 }
@@ -128,6 +136,8 @@ export function presentationFor(outcome: CheckInOutcome): OutcomePresentation {
     case "qr-used-up":
       return { tone: "warning", icon: "scan", replacesForm, blamesEmail };
     case "session-closed":
+    case "event-cancelled":
+    case "event-not-published":
     case "rate-limited":
       return { tone: "warning", icon: "wait", replacesForm, blamesEmail };
     case "network":
@@ -177,6 +187,18 @@ export function messageFor(outcome: CheckInOutcome, retryAfter: number | null = 
         tone: "error",
         title: "Bu oturum şu an giriş almıyor",
         detail: "Oturumun giriş saati dışındasınız ya da oturum iptal edildi. Kapıdaki görevliye başvurun.",
+      };
+    case "event-cancelled":
+      return {
+        tone: "error",
+        title: "Bu etkinlik iptal edildi",
+        detail: "İptal edilen etkinliğe giriş alınmıyor. Sorunuz varsa kapıdaki görevliye başvurun.",
+      };
+    case "event-not-published":
+      return {
+        tone: "error",
+        title: "Bu etkinlik henüz yayımlanmadı",
+        detail: "Etkinlik yayımlanmadan giriş alınmıyor. Kapıdaki görevliye başvurun.",
       };
     case "scan-required":
       return {
