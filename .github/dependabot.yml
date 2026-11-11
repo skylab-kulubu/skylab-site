@@ -11,3 +11,11 @@ updates:
       skylab-kulubu:
         patterns:
           - "@skylab-kulubu/*"
+      # react and react-dom must move together (react 19.3 with react-dom
+      # 19.2 is a version mismatch), so the React family gets one PR.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
