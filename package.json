@@ -22,7 +22,7 @@
     "next-auth": "^4.24.15",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.19.11",
