@@ -3,12 +3,19 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 
-// The door (/kapi) and certificate (/sertifika) pages are drawn with skylcn-ui
+// The door (/kapi), certificate (/sertifika) and ticket (/bilet) pages are drawn with skylcn-ui
 // (ADR 0055); the rest of the site is not. skylcn-ui's theme rewrites the tokens
 // and base styles the site's own globals.css sets, so it stays inside those routes.
 
 const root = new URL("..", import.meta.url).pathname;
-const SCOPED = ["src/app/kapi", "src/app/sertifika", "src/components/door", "src/components/skylcn"];
+const SCOPED = [
+  "src/app/kapi",
+  "src/app/sertifika",
+  "src/app/bilet",
+  "src/components/door",
+  "src/components/ticket",
+  "src/components/skylcn",
+];
 
 function filesUnder(dir) {
   return readdirSync(join(root, dir)).flatMap((name) => {

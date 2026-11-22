@@ -36,6 +36,16 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
         ],
       },
+      {
+        // The ticket page's address is its access key (ADR 0082): the link is the
+        // right to read. Keep it out of search results, caches' indexes and the
+        // Referer of the QR, the PDF and the map it links to.
+        source: "/bilet/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
   webpack: (config, { dev }) => {
