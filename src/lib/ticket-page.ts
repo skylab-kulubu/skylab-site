@@ -37,6 +37,23 @@ export function ticketLookupUrl(coreApiOrigin: string | undefined, key: string):
   return `${coreOrigin(coreApiOrigin)}/v1/public/tickets/${key}`;
 }
 
+// CORE_INTERNAL_URL (optional, read on the server at run time, never sent to
+// the browser): core on the deployment's internal network, e.g.
+// http://sky-lab-production-core-8qn0in:8080. The page's server asks core there
+// rather than through the public edge, as one service calls another, so the
+// X-Forwarded-For it sends reaches core as written. Unset or not an http(s)
+// address, the server asks the public origin as before. The QR and PDF links
+// the browser follows stay on core's public origin.
+export function internalCoreOrigin(coreInternalUrl: string | undefined): string | null {
+  if (!coreInternalUrl?.trim()) return null;
+  try {
+    const url = new URL(coreInternalUrl.trim());
+    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
 export type TicketState = "active" | "ended" | "event_cancelled";
 
 // Core's answer, read defensively. The cover, its colours, the Event's own
@@ -118,15 +135,20 @@ export function visitorAddress(forwardedFor: string | null, realIp: string | nul
 //
 // The page asks core from this site's server, so core would count every
 // visitor as one client. The visitor's address goes along as X-Forwarded-For,
-// which core believes only from the site's internal address (its proxy list).
+// which core believes only from the site's internal address (its proxy list),
+// so it counts only when the server asks core over CORE_INTERNAL_URL.
 export async function findTicket(
   key: string,
   coreApiOrigin: string | undefined,
-  { fetchImpl = fetch, visitor = null }: { fetchImpl?: typeof fetch; visitor?: string | null } = {},
+  {
+    fetchImpl = fetch,
+    visitor = null,
+    coreInternalUrl,
+  }: { fetchImpl?: typeof fetch; visitor?: string | null; coreInternalUrl?: string } = {},
 ): Promise<TicketLookup> {
   if (!isTicketKey(key)) return { kind: "not-found" };
   try {
-    const response = await fetchImpl(ticketLookupUrl(coreApiOrigin, key), {
+    const response = await fetchImpl(ticketLookupUrl(internalCoreOrigin(coreInternalUrl) ?? coreApiOrigin, key), {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
       ...(visitor ? { headers: { "X-Forwarded-For": visitor } } : {}),

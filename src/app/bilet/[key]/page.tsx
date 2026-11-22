@@ -41,10 +41,14 @@ function EmptyState({ kind }: { kind: Exclude<TicketLookup["kind"], "found"> }) 
 
 export default async function TicketPage({ params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
-  // CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts.
+  // CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts;
+  // CORE_INTERNAL_URL is read here at run time (Dokploy's environment).
   const request = await headers();
   const visitor = visitorAddress(request.get("x-forwarded-for"), request.get("x-real-ip"));
-  const result = await findTicket(key, process.env.CORE_API_ORIGIN, { visitor });
+  const result = await findTicket(key, process.env.CORE_API_ORIGIN, {
+    visitor,
+    coreInternalUrl: process.env.CORE_INTERNAL_URL,
+  });
   if (result.kind !== "found") return <EmptyState kind={result.kind} />;
 
   const view = ticketView(result.ticket, process.env.CORE_API_ORIGIN, new Date());

@@ -9,6 +9,7 @@ import {
   coverUrl,
   findTicket,
   frontWhen,
+  internalCoreOrigin,
   isTicketKey,
   mapsLink,
   openingFace,
@@ -99,6 +100,25 @@ test("the lookup is never cached, asks the ticket's own address and names the vi
     { url: `${CORE}/v1/public/tickets/${KEY}`, cache: "no-store", forwardedFor: "203.0.113.7" },
     { url: `${CORE}/v1/public/tickets/${KEY}`, cache: "no-store", forwardedFor: null },
   ]);
+});
+
+test("with CORE_INTERNAL_URL the server asks core inside the network; the browser's links stay public", async () => {
+  const internal = "http://sky-lab-sandbox-core-ljnbrl:8080";
+  const seen = [];
+  const recording = async (url, init) => {
+    seen.push({ url, forwardedFor: new Headers(init?.headers).get("x-forwarded-for") });
+    return new Response(JSON.stringify(answer({ qrUrl: `/v1/public/tickets/${KEY}/qr.png` })));
+  };
+  const result = await findTicket(KEY, CORE, { fetchImpl: recording, visitor: "203.0.113.7", coreInternalUrl: `${internal}/` });
+  assert.deepEqual(seen, [{ url: `${internal}/v1/public/tickets/${KEY}`, forwardedFor: "203.0.113.7" }]);
+  // A path from core is resolved against the public origin, never the internal one.
+  assert.equal(ticketView(result.ticket, CORE, new Date()).qrSrc, `${CORE}/v1/public/tickets/${KEY}/qr.png`);
+  for (const unset of [undefined, "", "  ", "not a url", "ftp://core:21"]) {
+    seen.length = 0;
+    await findTicket(KEY, CORE, { fetchImpl: recording, coreInternalUrl: unset });
+    assert.equal(seen[0].url, `${CORE}/v1/public/tickets/${KEY}`, String(unset));
+  }
+  assert.equal(internalCoreOrigin("http://sky-lab-production-core-8qn0in:8080/v1"), "http://sky-lab-production-core-8qn0in:8080");
 });
 
 test("the visitor is the address the edge proxy appended, never one a client wrote first", () => {
