@@ -1,0 +1,335 @@
+/*
+ * The ticket card (/bilet): an Apple Wallet event ticket's layout, set in the
+ * system's sans (SF Pro on Apple devices). The approved design is the hub's
+ * notes/ekran/2026-11-22/bilet-sayfa-v3/a.html. Both faces sit in one grid
+ * cell, so the card is as tall as its taller face and nothing is clipped.
+ */
+
+.float {
+  perspective: 1400px;
+  animation: float 5s ease-in-out infinite;
+}
+
+/* The QR is in view: the card stands still so a scanner reads it. */
+.float[data-still] {
+  animation-play-state: paused;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.card {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+}
+
+.card[data-face="back"] {
+  transform: rotateY(180deg);
+}
+
+.face {
+  grid-area: 1 / 1;
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--ticket-color);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* A face's own button covers it, under its text: a tap anywhere but on a link or the QR turns the card. */
+.turn {
+  all: unset;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  cursor: pointer;
+  border-radius: inherit;
+}
+
+.turn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+.back > :not(.turn) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* On the front the whole face turns the card: its button lies over everything. */
+.front .turn {
+  z-index: 2;
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 78%) 0%, rgb(0 0 0 / 25%) 40%, transparent 62%);
+}
+
+.mark {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  color: #fff;
+}
+
+.frontText {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 24px;
+}
+
+.frontTitle {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.frontWhen {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 85%);
+}
+
+.back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 20px;
+}
+
+.backTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.backTitle {
+  margin-top: 18px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.backWhen {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.venue {
+  margin-top: 2px;
+  font-size: 15px;
+  color: rgb(255 255 255 / 82%);
+}
+
+.holder {
+  margin-top: 16px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.bottom {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr {
+  all: unset;
+  pointer-events: auto;
+  cursor: zoom-in;
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  line-height: 0;
+}
+
+.qr:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.qr img {
+  display: block;
+  width: 224px;
+  height: 224px;
+  image-rendering: pixelated;
+}
+
+.code {
+  margin-top: 8px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 82%);
+  user-select: all;
+  pointer-events: auto;
+}
+
+.links {
+  margin-top: 14px;
+  display: flex;
+  gap: 22px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.links a {
+  pointer-events: auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+.links a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.status {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted-foreground);
+}
+
+/* The QR full screen: white, the QR as large as the screen allows, the code under it. */
+.full {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 24px;
+  border: 0;
+  background: #fff;
+  color: #000;
+  cursor: zoom-out;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+}
+
+.full[open] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.full::backdrop {
+  background: #fff;
+}
+
+.full img {
+  display: block;
+  width: min(88vw, calc(100dvh - 140px), 520px);
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+}
+
+.full p {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion: no float, no turn in space; the faces cross-fade. */
+@media (prefers-reduced-motion: reduce) {
+  .float {
+    animation: none;
+  }
+
+  .card {
+    transition: none;
+    transform: none !important;
+  }
+
+  .face {
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+    transition: opacity 0.2s linear;
+  }
+
+  .back {
+    transform: none;
+  }
+
+  .card:not([data-face="back"]) .back,
+  .card[data-face="back"] .front {
+    opacity: 0;
+  }
+}
+
+/* Print: the back on white, the QR and the code on one page. */
+@media print {
+  .float {
+    animation: none;
+  }
+
+  .card {
+    transform: none !important;
+    color: #000;
+  }
+
+  .front,
+  .turn,
+  .links {
+    display: none !important;
+  }
+
+  .back {
+    transform: none;
+    background: #fff;
+    min-height: 0;
+    break-inside: avoid;
+  }
+
+  .venue,
+  .code {
+    color: #000;
+  }
+}
