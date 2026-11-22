@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { StatusPage } from "@skylab-kulubu/skylcn-ui";
 import { House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import TicketCard from "@/components/ticket/TicketCard";
-import { findTicket, ticketView, type TicketLookup } from "@/lib/ticket-page";
+import { findTicket, ticketView, visitorAddress, type TicketLookup } from "@/lib/ticket-page";
 
 // The ticket changes with the Event (its dates, a cancellation): never cache it.
 export const dynamic = "force-dynamic";
@@ -41,7 +42,9 @@ function EmptyState({ kind }: { kind: Exclude<TicketLookup["kind"], "found"> }) 
 export default async function TicketPage({ params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
   // CORE_API_ORIGIN is API_BASE_URL, written into the build by next.config.ts.
-  const result = await findTicket(key, process.env.CORE_API_ORIGIN);
+  const request = await headers();
+  const visitor = visitorAddress(request.get("x-forwarded-for"), request.get("x-real-ip"));
+  const result = await findTicket(key, process.env.CORE_API_ORIGIN, { visitor });
   if (result.kind !== "found") return <EmptyState kind={result.kind} />;
 
   const view = ticketView(result.ticket, process.env.CORE_API_ORIGIN, new Date());

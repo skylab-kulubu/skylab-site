@@ -6,6 +6,7 @@ import {
   backWhen,
   cardColor,
   contrastWithWhite,
+  coverUrl,
   findTicket,
   frontWhen,
   isTicketKey,
@@ -16,6 +17,7 @@ import {
   ticketLookupUrl,
   ticketView,
   trustedUrl,
+  visitorAddress,
 } from "../src/lib/ticket-page.ts";
 
 const KEY = "K7M2QXZFABCDEFGHJKLMNPQRST";
@@ -67,31 +69,46 @@ test("a malformed key never reaches core", async () => {
     return new Response("{}");
   };
   for (const bad of ["x", "kapi", KEY.toLowerCase(), `${KEY}/qr.png`, "../../v1/sessions"]) {
-    assert.deepEqual(await findTicket(bad, CORE, counting), { kind: "not-found" });
+    assert.deepEqual(await findTicket(bad, CORE, { fetchImpl: counting }), { kind: "not-found" });
   }
   assert.equal(calls, 0);
 });
 
 test("core's answer decides the page's state", async () => {
-  assert.equal((await findTicket(KEY, CORE, respond(200, answer()))).kind, "found");
-  assert.deepEqual(await findTicket(KEY, CORE, respond(404, { status: 404 })), { kind: "not-found" });
-  assert.deepEqual(await findTicket(KEY, CORE, respond(410, { code: "ticket_page_closed" })), { kind: "closed" });
-  assert.deepEqual(await findTicket(KEY, CORE, respond(500, { status: 500 })), { kind: "unavailable" });
-  assert.deepEqual(await findTicket(KEY, CORE, respond(429, { status: 429 })), { kind: "unavailable" });
-  assert.deepEqual(await findTicket(KEY, CORE, respond(200, { nothing: true })), { kind: "unavailable" });
+  assert.equal((await findTicket(KEY, CORE, { fetchImpl: respond(200, answer()) })).kind, "found");
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: respond(404, { status: 404 }) }), { kind: "not-found" });
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: respond(410, { code: "ticket_page_closed" }) }), { kind: "closed" });
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: respond(500, { status: 500 }) }), { kind: "unavailable" });
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: respond(429, { status: 429 }) }), { kind: "unavailable" });
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: respond(200, { nothing: true }) }), { kind: "unavailable" });
   const offline = async () => {
     throw new TypeError("fetch failed");
   };
-  assert.deepEqual(await findTicket(KEY, CORE, offline), { kind: "unavailable" });
+  assert.deepEqual(await findTicket(KEY, CORE, { fetchImpl: offline }), { kind: "unavailable" });
 });
 
-test("the lookup is never cached and asks the ticket's own address", async () => {
-  let seen;
-  await findTicket(KEY, CORE, async (url, init) => {
-    seen = { url, cache: init?.cache };
+test("the lookup is never cached, asks the ticket's own address and names the visitor", async () => {
+  const seen = [];
+  const recording = async (url, init) => {
+    seen.push({ url, cache: init?.cache, forwardedFor: new Headers(init?.headers).get("x-forwarded-for") });
     return new Response(JSON.stringify(answer()));
-  });
-  assert.deepEqual(seen, { url: `${CORE}/v1/public/tickets/${KEY}`, cache: "no-store" });
+  };
+  await findTicket(KEY, CORE, { fetchImpl: recording, visitor: "203.0.113.7" });
+  await findTicket(KEY, CORE, { fetchImpl: recording });
+  assert.deepEqual(seen, [
+    { url: `${CORE}/v1/public/tickets/${KEY}`, cache: "no-store", forwardedFor: "203.0.113.7" },
+    { url: `${CORE}/v1/public/tickets/${KEY}`, cache: "no-store", forwardedFor: null },
+  ]);
+});
+
+test("the visitor is the address the edge proxy appended, never one a client wrote first", () => {
+  assert.equal(visitorAddress("203.0.113.7", null), "203.0.113.7");
+  assert.equal(visitorAddress("198.51.100.1, 203.0.113.7", null), "203.0.113.7");
+  assert.equal(visitorAddress("2001:db8::1", null), "2001:db8::1");
+  assert.equal(visitorAddress(null, " 203.0.113.9 "), "203.0.113.9");
+  assert.equal(visitorAddress("203.0.113.7, not-an-ip", null), null);
+  assert.equal(visitorAddress("", ""), null);
+  assert.equal(visitorAddress(null, null), null);
 });
 
 test("an answer is read only with a known state and a name", () => {
@@ -136,12 +153,13 @@ test("the card opens on the QR from three hours before the Event until its end",
 });
 
 test("the card's colour: the Event's, its cover's, else the club's purple, always readable in white", () => {
-  assert.equal(cardColor(null, []), SKYLAB_PURPLE.toLowerCase());
-  assert.equal(cardColor("#26446E", ["#d9c34a"]), "#26446e");
-  assert.equal(cardColor(null, ["#26446e"]), "#26446e");
-  assert.equal(cardColor("teal", ["nope"]), SKYLAB_PURPLE.toLowerCase());
+  assert.equal(cardColor([null, null], []), SKYLAB_PURPLE.toLowerCase());
+  assert.equal(cardColor(["#26446E", "#7C3AED"], ["#d9c34a"]), "#26446e");
+  assert.equal(cardColor([null, "#1F4E79"], ["#d9c34a"]), "#1f4e79");
+  assert.equal(cardColor([null, null], ["#26446e"]), "#26446e");
+  assert.equal(cardColor(["teal", "blue"], ["nope"]), SKYLAB_PURPLE.toLowerCase());
   for (const light of ["#ffffff", "#e0c8e5", "#d9c34a", "#7fffd4"]) {
-    const color = cardColor(light, []);
+    const color = cardColor([light], []);
     assert.ok(contrastWithWhite(color) >= 4.5, `${light} → ${color}`);
   }
 });
@@ -153,6 +171,24 @@ test("addresses from core load only over https or from core itself", () => {
   assert.equal(trustedUrl("http://evil.example/x.png", CORE), null);
   assert.equal(trustedUrl("javascript:alert(1)", CORE), null);
   assert.equal(trustedUrl(null, CORE), null);
+});
+
+test("a cover loads only from the club's media hosts or core", () => {
+  const sandboxCdn = "https://sandbox-cdn.yildizskylab.com/media/kapak.jpg";
+  assert.equal(coverUrl(sandboxCdn, CORE), sandboxCdn);
+  assert.equal(coverUrl("https://cdn.yildizskylab.com/media/kapak.jpg", CORE), "https://cdn.yildizskylab.com/media/kapak.jpg");
+  assert.equal(coverUrl(`${CORE}/v1/media/x`, CORE), `${CORE}/v1/media/x`);
+  assert.equal(coverUrl("https://example.com/kapak.jpg", CORE), null);
+  assert.equal(coverUrl("https://cdn.yildizskylab.com.example.com/k.jpg", CORE), null);
+  assert.equal(coverUrl("http://cdn.yildizskylab.com/k.jpg", CORE), null);
+  const view = ticketView(parseTicket(answer({ coverImageUrl: "https://example.com/k.jpg" })), CORE, new Date());
+  assert.equal(view.coverSrc, null);
+});
+
+test("theme.accent is read as the ticket's colour", () => {
+  assert.equal(parseTicket(answer({ theme: { key: "kurumsal", accent: "#26446E" } })).themeAccent, "#26446E");
+  assert.equal(parseTicket(answer({ theme: null })).themeAccent, null);
+  assert.equal(ticketView(parseTicket(answer({ theme: { accent: "#26446e" } })), CORE, new Date()).color, "#26446e");
 });
 
 test("Haritada aç: core's link, else the point, else the place's name", () => {

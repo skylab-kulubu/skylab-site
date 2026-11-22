@@ -77,9 +77,11 @@ The ticket a person gets in the "Biletin hazır" mail (ADR 0082 in skylab-kulubu
 
 - The server reads core's `GET /v1/public/tickets/{key}` (contract: core-backend `docs/ticket-page.md`) with `cache: "no-store"`. A key that is not 26 characters of `A`–`Z` and `2`–`7` is "Bilet bulunamadı" without asking core. `404` → not found, `410 ticket_page_closed` (a week after the Event) → "Bu bilet artık açık değil.", anything else → "Bilet şu an açılamıyor".
 - The card's front is the Event's cover (`coverImageUrl` when core sends it, else a plain card) with its name and date; a tap turns it to the back: organizer, name, date and hours, place, the holder, the QR (core's `qrUrl`), the code, "PDF’i indir" (`pdfUrl`) and "Haritada aç". A tap on the QR shows it full screen and keeps the screen awake. From three hours before the Event until its end the card opens on its back.
-- The card's colour is `ticketAccentColor`, else the cover's first colour (`coverColors[0]`), else the club's purple, darkened until white text reads at 4.5:1.
+- The card's colour is `ticketAccentColor`, else core's `theme.accent`, else the cover's first colour (`coverColors[0]`), else the club's purple, darkened until white text reads at 4.5:1. The cover loads only from the club's media hosts (`cdn.`, `sandbox-cdn.yildizskylab.com`) or core; any other host leaves the card without one.
+- Core limits the ticket's routes per client, and the page asks core from this site's server, so the request carries the visitor's address as `X-Forwarded-For`: the last entry of the `X-Forwarded-For` Traefik wrote (else `X-Real-Ip`), only when it is an IP address. `CF-Connecting-IP` is not read: the site is not behind Cloudflare, so a visitor could write it. Core believes the header only from the site's internal address.
 - The card floats a few pixels while its front shows; it stands still whenever the QR is in view and never moves with reduced motion.
 - `noindex` and no Referer (next.config.ts), the key never logged and never shown back on an error.
+- After a turn, focus moves to the face in view and a polite live region says which face it is.
 - Core's origin is `API_BASE_URL` from the image build (`CORE_API_ORIGIN`), as for `/sertifika`. Locally, point `API_BASE_URL` at a core of your own (or a stand-in) and open `/bilet/<key>`.
 
 ## skylcn-ui pages (`/kapi`, `/sertifika`, `/bilet`)

@@ -10,6 +10,8 @@
 // The key is a secret: it is never logged, never sent anywhere but core, and
 // the page sends no Referer (next.config.ts).
 
+import { isIP } from "node:net";
+
 const PRODUCTION_CORE = "https://api.yildizskylab.com";
 
 // The club's purple, the card's colour when the Event has none of its own
@@ -57,6 +59,8 @@ export type PublicTicket = {
   coverImageUrl: string | null;
   coverColors: string[];
   ticketAccentColor: string | null;
+  // theme.accent: the colour core gives the ticket (its PDF has the same).
+  themeAccent: string | null;
 };
 
 const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
@@ -87,6 +91,8 @@ export function parseTicket(body: unknown): PublicTicket | null {
     coverImageUrl: optionalText(raw.coverImageUrl),
     coverColors: Array.isArray(raw.coverColors) ? raw.coverColors.filter((c): c is string => typeof c === "string") : [],
     ticketAccentColor: optionalText(raw.ticketAccentColor),
+    themeAccent:
+      raw.theme && typeof raw.theme === "object" ? optionalText((raw.theme as Record<string, unknown>).accent) : null,
   };
 }
 
@@ -96,20 +102,34 @@ export type TicketLookup =
   | { kind: "closed" }
   | { kind: "unavailable" };
 
+// The visitor's address, as the edge proxy saw it: the last X-Forwarded-For
+// entry, which Traefik appends itself (it drops the header a client sends), else
+// X-Real-Ip. CF-Connecting-IP is not read: yildizskylab.com is not behind
+// Cloudflare, so a visitor could write it. Null when there is no address.
+export function visitorAddress(forwardedFor: string | null, realIp: string | null): string | null {
+  const last = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean).pop() ?? realIp?.trim() ?? "";
+  return isIP(last) ? last : null;
+}
+
 // 404: no such ticket (or a draft Event's, an erased holder's). 410
 // ticket_page_closed: the Event ended more than a week ago. Anything else,
 // or no answer, is "unavailable"; nothing is logged, since the address holds
 // the key.
+//
+// The page asks core from this site's server, so core would count every
+// visitor as one client. The visitor's address goes along as X-Forwarded-For,
+// which core believes only from the site's internal address (its proxy list).
 export async function findTicket(
   key: string,
   coreApiOrigin: string | undefined,
-  fetchImpl: typeof fetch = fetch,
+  { fetchImpl = fetch, visitor = null }: { fetchImpl?: typeof fetch; visitor?: string | null } = {},
 ): Promise<TicketLookup> {
   if (!isTicketKey(key)) return { kind: "not-found" };
   try {
     const response = await fetchImpl(ticketLookupUrl(coreApiOrigin, key), {
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
+      ...(visitor ? { headers: { "X-Forwarded-For": visitor } } : {}),
     });
     if (response.status === 404) return { kind: "not-found" };
     if (response.status === 410) return { kind: "closed" };
@@ -133,6 +153,17 @@ export function trustedUrl(value: string | null, coreApiOrigin: string | undefin
   } catch {
     return null;
   }
+}
+
+// The club's media hosts: an Event's cover is loaded only from them (or from
+// core itself), so a visitor's browser never calls a host an editor typed in.
+const MEDIA_HOSTS = new Set(["cdn.yildizskylab.com", "sandbox-cdn.yildizskylab.com"]);
+
+export function coverUrl(value: string | null, coreApiOrigin: string | undefined): string | null {
+  const url = trustedUrl(value, coreApiOrigin);
+  if (!url) return null;
+  const { hostname, origin } = new URL(url);
+  return MEDIA_HOSTS.has(hostname) || origin === coreOrigin(coreApiOrigin) ? url : null;
 }
 
 // The team that organizes the Event; the club's boards sign as the club.
@@ -227,11 +258,12 @@ export function contrastWithWhite(hex: string): number {
   return 1.05 / (luminance(hex) + 0.05);
 }
 
-// The card's colour: the Event's ticket colour, else its cover's first
-// colour, else the club's purple; darkened until white text on it reaches
-// 4.5:1 (WCAG AA), since a cover's colour may be light.
-export function cardColor(ticketAccentColor: string | null, coverColors: string[]): string {
-  let hex = [ticketAccentColor, coverColors[0]].find((c): c is string => !!c && HEX.test(c)) ?? SKYLAB_PURPLE;
+// The card's colour: the Event's ticket colour (ticketAccentColor, else core's
+// theme.accent), else its cover's first colour, else the club's purple;
+// darkened until white text on it reaches 4.5:1 (WCAG AA), since a cover's
+// colour may be light.
+export function cardColor(accents: (string | null)[], coverColors: string[]): string {
+  let hex = [...accents, coverColors[0]].find((c): c is string => !!c && HEX.test(c)) ?? SKYLAB_PURPLE;
   hex = hex.toLowerCase();
   while (contrastWithWhite(hex) < 4.5) {
     const darker = [1, 3, 5].map((i) => Math.floor(parseInt(hex.slice(i, i + 2), 16) * 0.9));
@@ -279,7 +311,7 @@ export type TicketView = {
 
 export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefined, now: Date): TicketView {
   const cancelled = ticket.state === "event_cancelled";
-  const cover = trustedUrl(ticket.coverImageUrl, coreApiOrigin);
+  const cover = coverUrl(ticket.coverImageUrl, coreApiOrigin);
   return {
     state: ticket.state,
     eventName: ticket.eventName,
@@ -289,7 +321,7 @@ export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefin
     venue: ticket.venue,
     holderName: ticket.holderName,
     code: ticket.code,
-    color: cardColor(ticket.ticketAccentColor, ticket.coverColors),
+    color: cardColor([ticket.ticketAccentColor, ticket.themeAccent], ticket.coverColors),
     coverSrc: cover,
     qrSrc: cancelled ? null : trustedUrl(ticket.qrUrl, coreApiOrigin),
     pdfHref: cancelled ? null : trustedUrl(ticket.pdfUrl, coreApiOrigin),

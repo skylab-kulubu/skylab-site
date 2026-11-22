@@ -22,7 +22,17 @@ function WhenLine({ when, className }: { when: When; className?: string }) {
 }
 
 // A face out of view is inert: no focus, nothing read out.
-function Front({ view, hidden, onTurn }: { view: TicketView; hidden: boolean; onTurn?: () => void }) {
+function Front({
+  view,
+  hidden,
+  onTurn,
+  turnRef,
+}: {
+  view: TicketView;
+  hidden: boolean;
+  onTurn?: () => void;
+  turnRef: React.Ref<HTMLButtonElement>;
+}) {
   return (
     <section className={`${styles.face} ${styles.front}`} inert={hidden}>
       {view.coverSrc ? (
@@ -36,7 +46,15 @@ function Front({ view, hidden, onTurn }: { view: TicketView; hidden: boolean; on
         <h1 className={styles.frontTitle}>{view.eventName}</h1>
         {view.front ? <WhenLine when={view.front} className={styles.frontWhen} /> : null}
       </div>
-      {onTurn ? <button type="button" className={styles.turn} onClick={onTurn} aria-label="QR’ı göster" /> : null}
+      {onTurn ? (
+        <button
+          ref={turnRef}
+          type="button"
+          className={styles.turn}
+          onClick={onTurn}
+          aria-label={view.qrSrc ? "QR’ı göster" : "Bileti çevir"}
+        />
+      ) : null}
     </section>
   );
 }
@@ -46,8 +64,20 @@ export default function TicketCard({ view }: { view: TicketView }) {
   const [face, setFace] = useState<"front" | "back">(cancelled ? "front" : view.openFace);
   const [fullScreen, setFullScreen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
-  const wakeLock = useRef<WakeLockSentinel | null>(null);
-  const turn = () => setFace((f) => (f === "front" ? "back" : "front"));
+  const frontTurn = useRef<HTMLButtonElement>(null);
+  const backTurn = useRef<HTMLButtonElement>(null);
+  const [turned, setTurned] = useState(false);
+  const turn = () => {
+    setTurned(true);
+    setFace((f) => (f === "front" ? "back" : "front"));
+  };
+
+  // After a turn the button that was pressed is on the face now inert, so focus
+  // moves to the face in view (its own turn button, first in its order).
+  useEffect(() => {
+    if (!turned) return;
+    (face === "back" ? backTurn : frontTurn).current?.focus({ preventScroll: true });
+  }, [face, turned]);
 
   // Full screen: the dialog is modal (Escape closes it) and the screen stays
   // awake while it is open, again after the tab comes back into view.
@@ -59,21 +89,31 @@ export default function TicketCard({ view }: { view: TicketView }) {
       return;
     }
     if (!node.open) node.showModal();
+    // A lock that arrives after the dialog closed, or a second one asked for
+    // when the tab came back, is let go at once: one lock at most, none after.
+    let closed = false;
+    let held: WakeLockSentinel | null = null;
     const keepAwake = () => {
       if (document.visibilityState !== "visible" || !("wakeLock" in navigator)) return;
+      if (held && !held.released) return;
       navigator.wakeLock
         .request("screen")
         .then((lock) => {
-          wakeLock.current = lock;
+          if (closed || (held && !held.released)) {
+            lock.release().catch(() => {});
+            return;
+          }
+          held = lock;
         })
         .catch(() => {});
     };
     keepAwake();
     document.addEventListener("visibilitychange", keepAwake);
     return () => {
+      closed = true;
       document.removeEventListener("visibilitychange", keepAwake);
-      wakeLock.current?.release().catch(() => {});
-      wakeLock.current = null;
+      held?.release().catch(() => {});
+      held = null;
     };
   }, [fullScreen]);
 
@@ -83,10 +123,10 @@ export default function TicketCard({ view }: { view: TicketView }) {
     <>
       <div className={styles.float} data-still={still || undefined}>
         <div className={styles.card} data-face={face} style={{ "--ticket-color": view.color } as React.CSSProperties}>
-          <Front view={view} hidden={face !== "front"} onTurn={cancelled ? undefined : turn} />
+          <Front view={view} hidden={face !== "front"} onTurn={cancelled ? undefined : turn} turnRef={frontTurn} />
           {cancelled ? null : (
             <section className={`${styles.face} ${styles.back}`} inert={face !== "back"}>
-                <button type="button" className={styles.turn} onClick={turn} aria-label="Ön yüzü göster" />
+                <button ref={backTurn} type="button" className={styles.turn} onClick={turn} aria-label="Ön yüzü göster" />
                 <div className={styles.backTop}>
                   <span>{view.organizer}</span>
                   <SkylabMark size={22} />
@@ -123,6 +163,10 @@ export default function TicketCard({ view }: { view: TicketView }) {
           )}
         </div>
       </div>
+      {/* Says which face is in view after a turn; empty until the first one. */}
+      <p className="sr-only" aria-live="polite">
+        {turned ? (face === "back" ? "Arka yüz: QR ve bilet bilgileri" : "Ön yüz") : ""}
+      </p>
       {cancelled ? <p className={styles.status}>Bu etkinlik iptal edildi.</p> : null}
       {view.state === "ended" ? <p className={styles.status}>Bu etkinlik sona erdi.</p> : null}
       {view.qrSrc ? (
