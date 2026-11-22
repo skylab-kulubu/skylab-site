@@ -14,7 +14,7 @@ export default function ScrollProgress() {
   const pathname = usePathname();
 
   // The pages drawn with skylcn-ui (SkylcnScope) carry no decorative bar.
-  if (pathname.startsWith("/kapi/") || pathname.startsWith("/sertifika/")) return null;
+  if (pathname.startsWith("/kapi/") || pathname.startsWith("/sertifika/") || pathname.startsWith("/bilet/")) return null;
 
   return (
     <motion.div
