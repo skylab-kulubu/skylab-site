@@ -65,6 +65,7 @@ export type PublicTicket = {
   eventEnd: string | null;
   venue: string;
   ownerTeam: string;
+  organizerName: string;
   holderName: string;
   code: string;
   qrUrl: string | null;
@@ -97,6 +98,7 @@ export function parseTicket(body: unknown): PublicTicket | null {
     eventEnd: optionalText(raw.eventEnd),
     venue: text(raw.venue),
     ownerTeam: text(raw.ownerTeam),
+    organizerName: text(raw.organizerName),
     holderName: text(raw.holderName),
     code: text(raw.code),
     qrUrl: optionalText(raw.qrUrl),
@@ -188,10 +190,17 @@ export function coverUrl(value: string | null, coreApiOrigin: string | undefined
   return MEDIA_HOSTS.has(hostname) || origin === coreOrigin(coreApiOrigin) ? url : null;
 }
 
-// The team that organizes the Event; the club's boards sign as the club.
-export function displayTeam(ownerTeam: string): string {
+// The club's name, as core and the ticket PDF write it.
+export const CLUB_NAME = "SKY LAB: Bilgisayar Bilimleri Kulübü";
+
+// Who organizes the Event: core's organizerName (the club's name for an
+// Event of YK, DK or ADMIN, else the team). An older core sends ownerTeam
+// alone: the club's boards, ADMIN and no team sign as the club.
+export function organizerName(organizer: string, ownerTeam: string): string {
+  const named = organizer.trim();
+  if (named) return named;
   const team = ownerTeam.trim();
-  return !team || team === "YK" || team === "DK" ? "SKY LAB" : team;
+  return !team || ["YK", "DK", "ADMIN"].includes(team.toUpperCase()) ? CLUB_NAME : team;
 }
 
 const ISTANBUL = "Europe/Istanbul";
@@ -337,7 +346,7 @@ export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefin
   return {
     state: ticket.state,
     eventName: ticket.eventName,
-    organizer: displayTeam(ticket.ownerTeam),
+    organizer: organizerName(ticket.organizerName, ticket.ownerTeam),
     front: frontWhen(ticket.eventStart),
     back: backWhen(ticket.eventStart, ticket.eventEnd),
     venue: ticket.venue,
