@@ -3,6 +3,7 @@ import { Badge, Card, DescriptionList, StatusPage, type DescriptionItem } from "
 import { BadgeCheck, BadgeX, Download, House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import { certificateLookupUrl } from "@/lib/certificate-lookup";
+import { organizerName } from "@/lib/ticket-page";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,8 @@ type PublicCertificate = {
   recipientName: string;
   eventName: string;
   ownerTeam: string;
+  // Who organized it, as core names it (left out by an older core).
+  organizerName?: string;
   status: "valid" | "revoked";
   verifyUrl: string;
   pdfUrl?: string;
@@ -64,11 +67,6 @@ function safeHttpsUrl(value?: string) {
   } catch {
     return null;
   }
-}
-
-function displayTeam(ownerTeam: string) {
-  const team = ownerTeam.trim();
-  return !team || team === "YK" || team === "DK" ? "SKY LAB" : team;
 }
 
 function formattedDate(value: string) {
@@ -134,7 +132,7 @@ function CertificateDetails({ certificate }: { certificate: PublicCertificate })
   const pdfUrl = valid ? safeHttpsUrl(certificate.pdfUrl) : null;
   const StatusIcon = valid ? BadgeCheck : BadgeX;
   const details: DescriptionItem[] = [
-    { label: "Düzenleyen", value: displayTeam(certificate.ownerTeam) },
+    { label: "Düzenleyen", value: organizerName(certificate.organizerName ?? "", certificate.ownerTeam ?? "") },
     { label: "Verilme tarihi", value: formattedDate(certificate.issuedAt) },
     ...(!valid && certificate.revokedAt
       ? [{ label: "İptal tarihi", value: formattedDate(certificate.revokedAt) }]

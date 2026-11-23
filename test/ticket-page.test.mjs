@@ -13,6 +13,7 @@ import {
   isTicketKey,
   mapsLink,
   openingFace,
+  organizerName,
   parseTicket,
   SKYLAB_PURPLE,
   ticketLookupUrl,
@@ -31,6 +32,7 @@ const answer = (extra = {}) => ({
   eventEnd: "2026-12-12T15:00:00Z",
   venue: "YTÜ Davutpaşa, EEF Konferans Salonu",
   ownerTeam: "AILAB",
+  organizerName: "AILAB",
   eventStatus: "published",
   holderName: "Elif Yılmaz",
   code: "K7M2-QX9F",
@@ -231,7 +233,17 @@ test("a cancelled Event's ticket has no QR and no PDF", () => {
   assert.equal(active.qrSrc, `${CORE}/v1/public/tickets/${KEY}/qr.png`);
   assert.equal(active.openFace, "back");
   assert.equal(active.organizer, "AILAB");
-  assert.equal(ticketView(parseTicket(answer({ ownerTeam: "YK" })), CORE, new Date()).organizer, "SKY LAB");
+  const club = "SKY LAB: Bilgisayar Bilimleri Kulübü";
+  assert.equal(ticketView(parseTicket(answer({ ownerTeam: "YK", organizerName: club })), CORE, new Date()).organizer, club);
+});
+
+test("the organizer is core's organizerName, else the club for its boards", () => {
+  const club = "SKY LAB: Bilgisayar Bilimleri Kulübü";
+  assert.equal(organizerName(club, "YK"), club);
+  assert.equal(organizerName("WEBLAB", "WEBLAB"), "WEBLAB");
+  for (const team of ["YK", "DK", "ADMIN", "yk", "", "  "]) assert.equal(organizerName("", team), club);
+  assert.equal(organizerName("", " GECEKODU "), "GECEKODU");
+  assert.equal(ticketView(parseTicket(answer({ ownerTeam: "YK", organizerName: undefined })), CORE, new Date()).organizer, club);
 });
 
 // next.config.ts imports next/constants, which Node's ESM loader cannot resolve
