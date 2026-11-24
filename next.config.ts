@@ -46,6 +46,15 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
         ],
       },
+      {
+        // Anyone who knows the serial sees the holder's name and attendance (ADR 0040
+        // addendum): keep the page out of search results and its address out of the Referer.
+        source: "/sertifika/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
   webpack: (config, { dev }) => {
