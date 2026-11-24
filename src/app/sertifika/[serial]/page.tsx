@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Badge, Card, DescriptionList, StatusPage, type DescriptionItem } from "@skylab-kulubu/skylcn-ui";
 import { BadgeCheck, BadgeX, Download, House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
+import { attendanceLine, type CertificateAttendance } from "@/lib/certificate-attendance";
 import { certificateLookupUrl } from "@/lib/certificate-lookup";
 import { organizerName } from "@/lib/ticket-page";
 
@@ -29,6 +30,9 @@ type PublicCertificate = {
   pdfUrl?: string;
   issuedAt: string;
   revokedAt?: string;
+  // The attendance it was issued on (left out for an older certificate and
+  // by an older core).
+  attendance?: CertificateAttendance;
 };
 
 type LookupResult =
@@ -131,12 +135,14 @@ function CertificateDetails({ certificate }: { certificate: PublicCertificate })
   const valid = certificate.status === "valid";
   const pdfUrl = valid ? safeHttpsUrl(certificate.pdfUrl) : null;
   const StatusIcon = valid ? BadgeCheck : BadgeX;
+  const attendance = attendanceLine(certificate.attendance);
   const details: DescriptionItem[] = [
     { label: "Düzenleyen", value: organizerName(certificate.organizerName ?? "", certificate.ownerTeam ?? "") },
     { label: "Verilme tarihi", value: formattedDate(certificate.issuedAt) },
     ...(!valid && certificate.revokedAt
       ? [{ label: "İptal tarihi", value: formattedDate(certificate.revokedAt) }]
       : []),
+    ...(attendance ? [{ label: "Katılım", value: attendance }] : []),
     {
       label: "Sertifika kodu",
       value: <span className="font-mono text-xs break-all text-secondary-foreground">{certificate.serial}</span>,
