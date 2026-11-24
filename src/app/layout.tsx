@@ -18,10 +18,16 @@ const manrope = Manrope({
 // keeps the built-in 404 (/_not-found) from being prerendered with one task's CMS blocks.
 export const dynamic = "force-dynamic";
 
+const SITE_TITLE = "SKY LAB Bilgisayar Bilimleri Kulübü";
+const SITE_DESCRIPTION =
+  "SKY LAB, Yıldız Teknik Üniversitesi Bilgisayar Bilimleri Kulübü. Ekiplerimizde proje geliştiriyor; ARTLAB, SKYDAYS ve YILDIZJAM'i düzenliyoruz.";
+
 export function generateMetadata(): Metadata {
   return {
-    title: "SKY LAB Bilgisayar Bilimleri Kulübü",
-    description: "SKY LAB Bilgisayar Bilimleri Kulübü, Yıldız Teknik Üniversitesi bünyesinde bilişim alanında gelişimi hedefleyen en aktif öğrenci topluluğu.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    openGraph: { title: SITE_TITLE, description: SITE_DESCRIPTION },
+    twitter: { title: SITE_TITLE, description: SITE_DESCRIPTION },
     robots: robotsFor(),
   };
 }

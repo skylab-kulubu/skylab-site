@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Network, Users } from "lucide-react";
+import { BookOpen, Network, Server } from "lucide-react";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { cn } from "@/lib/utils";
@@ -11,23 +11,23 @@ export default function FeaturesSection() {
   const features = [
     {
       icon: BookOpen,
-      title: "Akran Öğrenmesi",
+      title: "Akran öğrenmesi",
       description:
-        "Workshop ve bootcamp programları ile temelden ileri seviyeye kadar eğitimler sunuyoruz.",
+        "Eğitimleri ve workshop'ları üyelerimiz veriyor; her cuma GECEKODU'nda sabaha kadar birlikte çalışıyoruz.",
       color: "blue",
     },
     {
       icon: Network,
-      title: "Networking",
+      title: "Sektör ve mezunlar",
       description:
-        "Sektör-öğrenci buluşmaları ve seminerlerle profesyonel ağınızı genişletiyoruz.",
+        "ARTLAB, SKYDAYS ve YILDIZJAM'de sektörden konuşmacıları ağırlıyor, BİZBİZE'de mezunlarımızla bir araya geliyoruz.",
       color: "purple",
     },
     {
-      icon: Users,
-      title: "Öğren-Uygula",
+      icon: Server,
+      title: "Kendi altyapımız",
       description:
-        "Dinamik proje ekiplerimizle teorik bilgiyi pratiğe döküyoruz.",
+        "Kulübün hesap, form, posta, bilet ve sertifika sistemlerini üyelerimiz yazıyor ve işletiyor.",
       color: "pink",
     },
   ];
@@ -59,7 +59,7 @@ export default function FeaturesSection() {
       id="ozellikler"
       className="relative max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16"
     >
-      <SectionHeader title="Neler Katıyoruz?" isVisible={isVisible} />
+      <SectionHeader title="Ne yapıyoruz" isVisible={isVisible} />
 
       <div className="relative">
         <div

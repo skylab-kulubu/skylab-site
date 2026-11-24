@@ -60,7 +60,8 @@ function Front({
 }
 
 export default function TicketCard({ view }: { view: TicketView }) {
-  const cancelled = view.state === "event_cancelled";
+  // No QR, no back: a cancelled Event, a cancelled ticket, the waiting list
+  const cancelled = view.state === "event_cancelled" || view.state === "ticket_cancelled" || view.state === "waitlisted";
   const [face, setFace] = useState<"front" | "back">(cancelled ? "front" : view.openFace);
   const [fullScreen, setFullScreen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -167,7 +168,7 @@ export default function TicketCard({ view }: { view: TicketView }) {
       <p className="sr-only" aria-live="polite">
         {turned ? (face === "back" ? "Arka yüz: QR ve bilet bilgileri" : "Ön yüz") : ""}
       </p>
-      {cancelled ? <p className={styles.status}>Bu etkinlik iptal edildi.</p> : null}
+      {view.state === "event_cancelled" ? <p className={styles.status}>Bu etkinlik iptal edildi.</p> : null}
       {view.state === "ended" ? <p className={styles.status}>Bu etkinlik sona erdi.</p> : null}
       {view.qrSrc ? (
         <dialog

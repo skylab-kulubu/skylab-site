@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { StatusPage } from "@skylab-kulubu/skylcn-ui";
 import { House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
+import CancelTicket from "@/components/ticket/CancelTicket";
 import TicketCard from "@/components/ticket/TicketCard";
+import TicketNotice from "@/components/ticket/TicketNotice";
 import WelcomeAtDoor from "@/components/ticket/WelcomeAtDoor";
 import { organizerLogo } from "@/lib/ticket-check-ins";
 import { findTicket, ticketView, visitorAddress, type TicketLookup } from "@/lib/ticket-page";
@@ -54,9 +56,11 @@ export default async function TicketPage({ params }: { params: Promise<{ key: st
   if (result.kind !== "found") return <EmptyState kind={result.kind} />;
 
   const view = ticketView(result.ticket, process.env.CORE_API_ORIGIN, new Date());
+  const { state, cancellable } = result.ticket;
   return (
     <div className="mx-auto w-full max-w-md flex-1 px-5 pt-6 pb-12">
       <TicketCard view={view} />
+      {state === "ticket_cancelled" || state === "waitlisted" ? <TicketNotice state={state} /> : null}
       <WelcomeAtDoor
         ticketKey={key}
         holderName={view.holderName}
@@ -68,6 +72,10 @@ export default async function TicketPage({ params }: { params: Promise<{ key: st
         organizerLogo={organizerLogo(result.ticket.ownerTeam, result.ticket.eventName)}
         coverSrc={view.coverSrc}
       />
+      {/* Only while core says so: an older core sends no `cancellable`, and offers no cancel */}
+      {cancellable && (state === "active" || state === "waitlisted") ? (
+        <CancelTicket ticketKey={key} waitlisted={state === "waitlisted"} />
+      ) : null}
     </div>
   );
 }

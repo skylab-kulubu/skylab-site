@@ -30,7 +30,7 @@ export default function IntroductionSection() {
           )}
           style={{ transitionDelay: "150ms" }}
         >
-          En Aktif Bilgisayar Bilimleri Durağı!
+          Öğrenci Teknoloji Topluluğu
         </span>
       </h2>
 
@@ -41,8 +41,9 @@ export default function IntroductionSection() {
         )}
         style={{ transitionDelay: "300ms" }}
       >
-        SKY LAB; Ar-Ge, proje ve iş geliştirme ekipleriyle YTÜ bünyesindeki en
-        dinamik ve etkin kulüplerden biridir.
+        Ekiplerimizde proje geliştiriyor, yarışmalara birlikte hazırlanıyoruz.
+        Etkinliklerimizi kendimiz düzenliyor, kulübün kullandığı yazılımı
+        kendimiz yazıp işletiyoruz.
       </p>
 
       <SectionDivider isVisible={isVisible} delay={450} className="pt-4" />
