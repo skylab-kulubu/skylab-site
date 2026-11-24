@@ -15,6 +15,7 @@ import {
   openingFace,
   organizerName,
   parseTicket,
+  requestCancel,
   SKYLAB_PURPLE,
   ticketLookupUrl,
   ticketView,
@@ -134,7 +135,7 @@ test("the visitor is the address the edge proxy appended, never one a client wro
 });
 
 test("an answer is read only with a known state and a name", () => {
-  assert.equal(parseTicket(answer({ state: "ticket_cancelled" })), null);
+  assert.equal(parseTicket(answer({ state: "lost" })), null);
   assert.equal(parseTicket(answer({ eventName: " " })), null);
   assert.equal(parseTicket(null), null);
   const ticket = parseTicket(answer({ coverColors: ["#26446e", 3], venueLat: 41.02, venueLng: "28.9" }));
@@ -254,4 +255,70 @@ test("/bilet answers with no Referer and out of search results", () => {
   assert.ok(rule, "a headers() rule for /bilet/:path*");
   assert.match(rule[1], /\{ key: "Referrer-Policy", value: "no-referrer" \}/);
   assert.match(rule[1], /\{ key: "X-Robots-Tag", value: "noindex, nofollow" \}/);
+});
+
+test("a cancelled ticket and one on the waiting list are read, with no QR and no PDF", () => {
+  for (const state of ["ticket_cancelled", "waitlisted"]) {
+    const ticket = parseTicket(answer({ state, qrUrl: "", pdfUrl: "" }));
+    assert.equal(ticket.state, state);
+    const view = ticketView(ticket, CORE, new Date("2026-12-12T08:00:00Z"));
+    assert.equal(view.qrSrc, null, state);
+    assert.equal(view.pdfHref, null, state);
+    assert.equal(view.openFace, "front", state);
+  }
+  // Even if core sent the links, the page would not show them
+  const sent = ticketView(parseTicket(answer({ state: "waitlisted" })), CORE, new Date());
+  assert.equal(sent.qrSrc, null);
+});
+
+test("cancellable is true only when core says so", () => {
+  assert.equal(parseTicket(answer()).cancellable, false);
+  assert.equal(parseTicket(answer({ cancellable: "true" })).cancellable, false);
+  assert.equal(parseTicket(answer({ cancellable: true })).cancellable, true);
+});
+
+test("the cancel posts core's route from the server, with the visitor's address", async () => {
+  let asked;
+  const fetchImpl = async (url, init) => {
+    asked = { url, init };
+    return new Response(JSON.stringify({ state: "ticket_cancelled" }), { status: 200 });
+  };
+  assert.deepEqual(
+    await requestCancel(KEY, CORE, { fetchImpl, visitor: "203.0.113.9", coreInternalUrl: "http://core:8080" }),
+    { kind: "cancelled" },
+  );
+  assert.equal(asked.url, `http://core:8080/v1/public/tickets/${KEY}/cancel`);
+  assert.equal(asked.init.method, "POST");
+  assert.equal(asked.init.cache, "no-store");
+  assert.deepEqual(asked.init.headers, { "X-Forwarded-For": "203.0.113.9" });
+});
+
+test("the cancel says why core refused it", async () => {
+  const conflict = (code) => respond(409, { type: "about:blank", title: "Conflict", status: 409, code });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: conflict("ticket_cancel_closed") }), {
+    kind: "refused",
+    code: "ticket_cancel_closed",
+  });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: conflict("ticket_checked_in") }), {
+    kind: "refused",
+    code: "ticket_checked_in",
+  });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: conflict("something_new") }), { kind: "refused", code: null });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: respond(404) }), { kind: "not-found" });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: respond(429) }), { kind: "limited" });
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: respond(500) }), { kind: "failed" });
+  const broken = async () => {
+    throw new Error("down");
+  };
+  assert.deepEqual(await requestCancel(KEY, CORE, { fetchImpl: broken }), { kind: "failed" });
+});
+
+test("a malformed key is never posted to core", async () => {
+  let calls = 0;
+  const counting = async () => {
+    calls++;
+    return new Response("{}");
+  };
+  assert.deepEqual(await requestCancel("../../v1/x", CORE, { fetchImpl: counting }), { kind: "not-found" });
+  assert.equal(calls, 0);
 });

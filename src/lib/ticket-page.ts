@@ -13,6 +13,7 @@
 import { isIP } from "node:net";
 
 import { atDoorHours, checkInsLookupUrl, lookupFromStatus, type CheckInsLookup } from "./ticket-check-ins.ts";
+import { cancelOutcomeFor, ticketCancelUrl, type CancelOutcome } from "./ticket-cancel.ts";
 
 const PRODUCTION_CORE = "https://api.yildizskylab.com";
 
@@ -56,7 +57,16 @@ export function internalCoreOrigin(coreInternalUrl: string | undefined): string 
   }
 }
 
-export type TicketState = "active" | "ended" | "event_cancelled";
+// ticket_cancelled and waitlisted (core-backend docs/ticket-cancellation.md,
+// docs/event-capacity.md): the ticket opens no door, so the page shows no QR.
+export type TicketState = "active" | "ended" | "event_cancelled" | "ticket_cancelled" | "waitlisted";
+
+const STATES: readonly string[] = ["active", "ended", "event_cancelled", "ticket_cancelled", "waitlisted"];
+
+// The states that carry no QR and no PDF.
+export function opensNoDoor(state: TicketState): boolean {
+  return state === "event_cancelled" || state === "ticket_cancelled" || state === "waitlisted";
+}
 
 // Core's answer, read defensively. The cover, its colours, the Event's own
 // ticket colour and the place's point are read when core sends them; the
@@ -73,6 +83,9 @@ export type PublicTicket = {
   qrUrl: string | null;
   pdfUrl: string | null;
   state: TicketState;
+  // Whether the holder may cancel it from the page now; false from a core
+  // that does not say.
+  cancellable: boolean;
   mapsUrl: string | null;
   venueLat: number | null;
   venueLng: number | null;
@@ -91,7 +104,7 @@ export function parseTicket(body: unknown): PublicTicket | null {
   if (!body || typeof body !== "object") return null;
   const raw = body as Record<string, unknown>;
   const state = raw.state;
-  if (state !== "active" && state !== "ended" && state !== "event_cancelled") return null;
+  if (typeof state !== "string" || !STATES.includes(state)) return null;
   const eventName = text(raw.eventName);
   if (!eventName) return null;
   return {
@@ -105,7 +118,8 @@ export function parseTicket(body: unknown): PublicTicket | null {
     code: text(raw.code),
     qrUrl: optionalText(raw.qrUrl),
     pdfUrl: optionalText(raw.pdfUrl),
-    state,
+    state: state as TicketState,
+    cancellable: raw.cancellable === true,
     mapsUrl: optionalText(raw.mapsUrl),
     venueLat: number(raw.venueLat),
     venueLng: number(raw.venueLng),
@@ -189,6 +203,34 @@ export async function findCheckIns(
     });
     const body = response.ok ? await response.json().catch(() => null) : null;
     return lookupFromStatus(response.status, body);
+  } catch {
+    return { kind: "failed" };
+  }
+}
+
+// The holder's cancel (POST /v1/public/tickets/{key}/cancel), asked from this
+// site's server as findTicket does: over CORE_INTERNAL_URL when set, with the
+// visitor's address. Nothing is logged: the address holds the key.
+export async function requestCancel(
+  key: string,
+  coreApiOrigin: string | undefined,
+  {
+    fetchImpl = fetch,
+    visitor = null,
+    coreInternalUrl,
+  }: { fetchImpl?: typeof fetch; visitor?: string | null; coreInternalUrl?: string } = {},
+): Promise<CancelOutcome> {
+  if (!isTicketKey(key)) return { kind: "not-found" };
+  try {
+    const origin = coreOrigin(internalCoreOrigin(coreInternalUrl) ?? coreApiOrigin);
+    const response = await fetchImpl(ticketCancelUrl(origin, key), {
+      method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+      ...(visitor ? { headers: { "X-Forwarded-For": visitor } } : {}),
+    });
+    const body = await response.json().catch(() => null);
+    return cancelOutcomeFor(response.status, body);
   } catch {
     return { kind: "failed" };
   }
@@ -363,7 +405,7 @@ export type TicketView = {
 };
 
 export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefined, now: Date): TicketView {
-  const cancelled = ticket.state === "event_cancelled";
+  const cancelled = opensNoDoor(ticket.state);
   const cover = coverUrl(ticket.coverImageUrl, coreApiOrigin);
   return {
     state: ticket.state,

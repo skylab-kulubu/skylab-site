@@ -685,7 +685,7 @@ function TeamsSectionInner({ argeTeams }: { argeTeams: any[] }) {
                   : "0 0 4px rgba(255, 255, 255, 0.1)",
               }}
             >
-              Ekiplerimize Katılmak İstersen Tıkla!
+              Ekiplere başvurun
             </span>
           </button>
         </div>
