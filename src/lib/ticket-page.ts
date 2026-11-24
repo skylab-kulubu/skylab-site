@@ -12,6 +12,8 @@
 
 import { isIP } from "node:net";
 
+import { atDoorHours, checkInsLookupUrl, lookupFromStatus, type CheckInsLookup } from "./ticket-check-ins.ts";
+
 const PRODUCTION_CORE = "https://api.yildizskylab.com";
 
 // The club's purple, the card's colour when the Event has none of its own
@@ -165,6 +167,33 @@ export async function findTicket(
   }
 }
 
+// The holder's own check-ins (GET /v1/public/tickets/{key}/check-ins), asked
+// from this site's server as findTicket does: over CORE_INTERNAL_URL when set,
+// with the visitor's address. Nothing is logged: the address holds the key.
+export async function findCheckIns(
+  key: string,
+  coreApiOrigin: string | undefined,
+  {
+    fetchImpl = fetch,
+    visitor = null,
+    coreInternalUrl,
+  }: { fetchImpl?: typeof fetch; visitor?: string | null; coreInternalUrl?: string } = {},
+): Promise<CheckInsLookup> {
+  if (!isTicketKey(key)) return { kind: "stop" };
+  try {
+    const origin = coreOrigin(internalCoreOrigin(coreInternalUrl) ?? coreApiOrigin);
+    const response = await fetchImpl(checkInsLookupUrl(origin, key), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+      ...(visitor ? { headers: { "X-Forwarded-For": visitor } } : {}),
+    });
+    const body = response.ok ? await response.json().catch(() => null) : null;
+    return lookupFromStatus(response.status, body);
+  } catch {
+    return { kind: "failed" };
+  }
+}
+
 // An address from core's answer the browser may load: https, or on core's own
 // origin (a local core in development). Core sends paths when its
 // PUBLIC_API_ORIGIN is unset; they are core's.
@@ -261,18 +290,11 @@ export function backWhen(eventStart: string | null, eventEnd: string | null): Wh
   return { date: `${dayLabel(start)}, ${timeLabel(start)} – ${dayLabel(end)}`, hours: timeLabel(end) };
 }
 
-const HOUR = 60 * 60 * 1000;
-
-// The face the card opens on: the QR from three hours before the Event until
-// its end (the end date, else a day after the start, ADR 0066), the cover
-// otherwise.
+// The face the card opens on: the QR in the door's hours, from three hours
+// before the Event until its end (the end date, else a day after the start,
+// ADR 0066), the cover otherwise.
 export function openingFace(ticket: Pick<PublicTicket, "state" | "eventStart" | "eventEnd">, now: Date): "front" | "back" {
-  if (ticket.state !== "active") return "front";
-  const start = parseDate(ticket.eventStart);
-  if (!start) return "front";
-  const end = parseDate(ticket.eventEnd) ?? new Date(start.getTime() + 24 * HOUR);
-  const t = now.getTime();
-  return t >= start.getTime() - 3 * HOUR && t <= end.getTime() ? "back" : "front";
+  return atDoorHours(ticket, now) ? "back" : "front";
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
