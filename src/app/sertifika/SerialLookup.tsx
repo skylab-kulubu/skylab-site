@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Field, Input } from "@skylab-kulubu/skylcn-ui";
 import { serialFromInput } from "@/lib/certificate-serial";
@@ -14,6 +14,18 @@ export default function SerialLookup() {
   const [invalid, setInvalid] = useState(false);
   const [going, setGoing] = useState(false);
 
+  // Back on this page (the back button, or the page restored from the
+  // browser's cache): the button is ready again.
+  useEffect(() => {
+    const ready = () => setGoing(false);
+    window.addEventListener("pageshow", ready);
+    window.addEventListener("popstate", ready);
+    return () => {
+      window.removeEventListener("pageshow", ready);
+      window.removeEventListener("popstate", ready);
+    };
+  }, []);
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const serial = serialFromInput(value);
@@ -23,6 +35,9 @@ export default function SerialLookup() {
     }
     setGoing(true);
     router.push(`/sertifika/${serial}`);
+    // A navigation that does not leave the page (the same serial again)
+    // does not unmount this form: let the button go after a moment.
+    window.setTimeout(() => setGoing(false), 4000);
   }
 
   return (
