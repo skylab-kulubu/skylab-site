@@ -4,6 +4,7 @@ import { StatusPage } from "@skylab-kulubu/skylcn-ui";
 import { House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import TicketCard from "@/components/ticket/TicketCard";
+import WelcomeAtDoor from "@/components/ticket/WelcomeAtDoor";
 import { findTicket, ticketView, visitorAddress, type TicketLookup } from "@/lib/ticket-page";
 
 // The ticket changes with the Event (its dates, a cancellation): never cache it.
@@ -55,6 +56,15 @@ export default async function TicketPage({ params }: { params: Promise<{ key: st
   return (
     <div className="mx-auto w-full max-w-md flex-1 px-5 pt-6 pb-12">
       <TicketCard view={view} />
+      <WelcomeAtDoor
+        ticketKey={key}
+        holderName={view.holderName}
+        eventName={view.eventName}
+        state={result.ticket.state}
+        eventStart={result.ticket.eventStart}
+        eventEnd={result.ticket.eventEnd}
+        color={view.color}
+      />
     </div>
   );
 }
