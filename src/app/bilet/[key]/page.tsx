@@ -5,6 +5,7 @@ import { House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import TicketCard from "@/components/ticket/TicketCard";
 import WelcomeAtDoor from "@/components/ticket/WelcomeAtDoor";
+import { organizerLogo } from "@/lib/ticket-check-ins";
 import { findTicket, ticketView, visitorAddress, type TicketLookup } from "@/lib/ticket-page";
 
 // The ticket changes with the Event (its dates, a cancellation): never cache it.
@@ -63,7 +64,9 @@ export default async function TicketPage({ params }: { params: Promise<{ key: st
         state={result.ticket.state}
         eventStart={result.ticket.eventStart}
         eventEnd={result.ticket.eventEnd}
-        color={view.color}
+        organizer={view.organizer}
+        organizerLogo={organizerLogo(result.ticket.ownerTeam, result.ticket.eventName)}
+        coverSrc={view.coverSrc}
       />
     </div>
   );

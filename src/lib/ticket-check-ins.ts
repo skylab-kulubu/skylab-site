@@ -122,3 +122,27 @@ export function lookupFromStatus(status: number, body: unknown): CheckInsLookup 
   const checkIns = parseCheckIns(body);
   return checkIns ? { kind: "ok", checkIns } : { kind: "failed" };
 }
+
+// The small logo next to the organizer on the greeting: the club's own
+// files in public/img, for the teams and events that have one there (the
+// same files the site's pages use). Nothing else: an Event of another team
+// shows its name alone.
+export type OrganizerLogo = { src: string; alt: string };
+
+const EVENT_LOGOS: { match: RegExp; logo: OrganizerLogo }[] = [
+  { match: /gece\s*kodu/i, logo: { src: "/img/teams/gecekodubeyaz.png", alt: "GECEKODU" } },
+  { match: /art\s*lab/i, logo: { src: "/img/events/artlab.png", alt: "ARTLAB" } },
+  { match: /sky\s*days/i, logo: { src: "/img/events/skydays.png", alt: "SKYDAYS" } },
+  { match: /y[ıi]ld[ıi]z\s*jam/i, logo: { src: "/img/events/yildizjam.png", alt: "YıldızJam" } },
+];
+
+const TEAM_LOGOS: Record<string, OrganizerLogo> = {
+  WEBLAB: { src: "/img/teams/weblablogobeyaz.svg", alt: "WEBLAB" },
+  GECEKODU: { src: "/img/teams/gecekodubeyaz.png", alt: "GECEKODU" },
+};
+
+export function organizerLogo(ownerTeam: string, eventName: string): OrganizerLogo | null {
+  const event = EVENT_LOGOS.find((e) => e.match.test(eventName));
+  if (event) return event.logo;
+  return TEAM_LOGOS[ownerTeam.trim().toUpperCase()] ?? null;
+}

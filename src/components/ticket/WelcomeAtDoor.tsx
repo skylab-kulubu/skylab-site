@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Check } from "lucide-react";
 import {
   atDoorHours,
@@ -11,6 +12,7 @@ import {
   newCheckIn,
   nextDelay,
   type CheckInsLookup,
+  type OrganizerLogo,
   type TicketCheckIn,
 } from "@/lib/ticket-check-ins";
 import styles from "./WelcomeAtDoor.module.css";
@@ -22,7 +24,11 @@ type Props = {
   state: string;
   eventStart: string | null;
   eventEnd: string | null;
-  color: string;
+  // Who organizes it (the club, or "WEBLAB · Web Geliştirme") and their logo, if the site has it.
+  organizer: string;
+  organizerLogo: OrganizerLogo | null;
+  // The Event's cover, blurred and darkened behind the greeting; the club's colours without one.
+  coverSrc: string | null;
 };
 
 // How long the greeting stays before it closes by itself.
@@ -43,7 +49,17 @@ async function ask(ticketKey: string): Promise<CheckInsLookup> {
 // when the door writes the check-in it greets them full screen and stops.
 // A phone that can vibrates (Android); an iPhone only shows it, since a page
 // cannot play a sound nobody tapped for.
-export default function WelcomeAtDoor({ ticketKey, holderName, eventName, state, eventStart, eventEnd, color }: Props) {
+export default function WelcomeAtDoor({
+  ticketKey,
+  holderName,
+  eventName,
+  state,
+  eventStart,
+  eventEnd,
+  organizer,
+  organizerLogo,
+  coverSrc,
+}: Props) {
   const [greeting, setGreeting] = useState<TicketCheckIn | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const close = useRef<HTMLButtonElement>(null);
@@ -135,17 +151,25 @@ export default function WelcomeAtDoor({ ticketKey, holderName, eventName, state,
   }, [greeting]);
 
   const name = firstName(holderName);
+  // The dialog's content is drawn while it is closed too (hidden), so the logos and the cover
+  // are already loaded when the door writes the entry.
   return (
     <dialog
       ref={dialog}
       className={styles.welcome}
-      style={{ "--welcome-color": color } as React.CSSProperties}
+      data-cover={coverSrc ? "" : undefined}
       aria-labelledby="welcome-title"
       onClose={() => setGreeting(null)}
       onClick={() => setGreeting(null)}
     >
-      {greeting ? (
-        <>
+      {coverSrc ? (
+        // The cover is core's public image, as on the card.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className={styles.cover} src={coverSrc} alt="" referrerPolicy="no-referrer" decoding="async" />
+      ) : null}
+      <div className={styles.body}>
+        <Image className={styles.logo} src="/img/skylablogo.svg" alt="SKY LAB" width={64} height={60} priority />
+        <div className={styles.middle}>
           <span className={styles.mark} aria-hidden="true">
             <Check strokeWidth={3} />
           </span>
@@ -153,12 +177,22 @@ export default function WelcomeAtDoor({ ticketKey, holderName, eventName, state,
             {name ? `Hoş geldin, ${name}` : "Hoş geldin"}
           </h2>
           <p className={styles.event}>{eventName}</p>
-          <p className={styles.session}>{checkInLine(greeting)}</p>
+          {greeting ? <p className={styles.session}>{checkInLine(greeting)}</p> : null}
+        </div>
+        <div className={styles.bottom}>
+          {organizer ? (
+            <p className={styles.organizer}>
+              {organizerLogo ? (
+                <Image className={styles.teamLogo} src={organizerLogo.src} alt="" width={28} height={28} />
+              ) : null}
+              <span>{organizer}</span>
+            </p>
+          ) : null}
           <button ref={close} type="button" className={styles.close}>
             Kapat
           </button>
-        </>
-      ) : null}
+        </div>
+      </div>
     </dialog>
   );
 }

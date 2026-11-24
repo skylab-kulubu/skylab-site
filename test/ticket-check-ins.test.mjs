@@ -114,3 +114,15 @@ test("the site's server asks core with the visitor's address, never a malformed 
   };
   assert.deepEqual(await findCheckIns(KEY, CORE, { fetchImpl: failing }), { kind: "failed" });
 });
+
+test("the organizer's own logo: an event of the club's with one, else the team's, else none", async () => {
+  const { organizerLogo } = await import("../src/lib/ticket-check-ins.ts");
+  assert.equal(organizerLogo("WEBLAB", "Next.js Atölyesi")?.src, "/img/teams/weblablogobeyaz.svg");
+  assert.equal(organizerLogo("weblab", "x")?.alt, "WEBLAB");
+  assert.equal(organizerLogo("GECEKODU", "Gece Kodu #42")?.src, "/img/teams/gecekodubeyaz.png");
+  assert.equal(organizerLogo("AIRLAB", "ARTLAB 2026")?.src, "/img/events/artlab.png");
+  assert.equal(organizerLogo("SKY-SEC", "SKYDAYS '26")?.src, "/img/events/skydays.png");
+  assert.equal(organizerLogo("GAMELAB", "YıldızJam")?.src, "/img/events/yildizjam.png");
+  assert.equal(organizerLogo("YK", "SKY LAB Tanışma Günü"), null);
+  assert.equal(organizerLogo("AILAB", "Yapay Zeka Kampı"), null);
+});
