@@ -191,9 +191,8 @@ export default function Footer() {
                 )}
                 style={{ transitionDelay: "200ms" }}
               >
-                Yıldız Teknik Üniversitesi Bilgisayar Bilimleri Kulübü olarak
-                teknoloji ve yenilikçilik alanında arkadaşlarımıza destek
-                veriyoruz.
+                Yapay zekâdan siber güvenliğe sekiz ekipte proje geliştiriyor,
+                birbirimize öğretiyoruz.
               </p>
             </div>
 
