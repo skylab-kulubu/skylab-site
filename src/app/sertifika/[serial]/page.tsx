@@ -4,6 +4,7 @@ import { BadgeCheck, BadgeX, Download, House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import { attendanceLine, type CertificateAttendance } from "@/lib/certificate-attendance";
 import { certificateLookupUrl } from "@/lib/certificate-lookup";
+import { SERIAL_PATTERN } from "@/lib/certificate-serial";
 import { organizerName } from "@/lib/ticket-page";
 
 export const dynamic = "force-dynamic";
@@ -39,9 +40,6 @@ type LookupResult =
   | { kind: "found"; certificate: PublicCertificate }
   | { kind: "not-found" }
   | { kind: "unavailable" };
-
-// Existing certificates used 64-bit serials; new certificates use 128-bit serials.
-const SERIAL_PATTERN = /^(?:[A-Fa-f0-9]{16}|[A-Fa-f0-9]{32})$/;
 
 async function findCertificate(serial: string): Promise<LookupResult> {
   if (!SERIAL_PATTERN.test(serial)) return { kind: "not-found" };
