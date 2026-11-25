@@ -84,6 +84,15 @@ The ticket a person gets in the "Biletin hazır" mail (ADR 0082 in skylab-kulubu
 - After a turn, focus moves to the face in view and a polite live region says which face it is.
 - Core's origin is `API_BASE_URL` from the image build (`CORE_API_ORIGIN`), as for `/sertifika`. Locally, point `API_BASE_URL` at a core of your own (or a stand-in) and open `/bilet/<key>`.
 
+## Certificate PDF (`/sertifika/[serial].pdf`)
+
+A certificate's PDF opens on the club's address, `/sertifika/{serial}.pdf`, beside its verification page `/sertifika/{serial}` (the QR's target). The page's "PDF sertifikayı indir" links it, and core's `pdfUrl` points at it once core has `CERTIFICATE_PUBLIC_PAGE_ORIGIN` (core-backend `docs/certificate-pdf-address.md`).
+
+- The middleware rewrites `/sertifika/{serial}.pdf` to the route `src/app/sertifika/[serial]/pdf/route.ts` (the App Router has no `[serial].pdf` beside the page's `[serial]`); only letters and digits are rewritten.
+- The route asks core's `GET /v1/certificates/verify/{serial}/pdf` and streams it on: `application/pdf`, `inline` with the file name `SKYLAB-sertifika-{serial}.pdf`, `Cache-Control: no-store` unless core sends its own, `nosniff`, `noindex`, no Referer. Core decides every time, so a revoked certificate is `404` at once.
+- A serial that is not 16 or 32 hex characters is `404` without asking core. Core's `404`, `410` and `429` pass through as they are; core gets 15 seconds (`504` past them), core down or anything else is `502`. A compressed answer is handed on without its `Content-Length` (fetch decodes the body).
+- Core is asked as for `/bilet`: over `CORE_INTERNAL_URL` when set, with the visitor's address as `X-Forwarded-For`, since core limits its public certificate routes per client. Core's own PDF address keeps working for the links already sent.
+
 ## skylcn-ui pages (`/kapi`, `/sertifika`, `/bilet`)
 
 The door check-in, the certificate check and the ticket are drawn with [skylcn-ui](https://github.com/skylab-kulubu/skylcn-ui), the club's design system (ADR 0055 in skylab-kulubu/e-skylab). The rest of the site is not, and stays exactly as it is:
