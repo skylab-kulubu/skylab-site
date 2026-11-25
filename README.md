@@ -90,7 +90,7 @@ A certificate's PDF opens on the club's address, `/sertifika/{serial}.pdf`, besi
 
 - The middleware rewrites `/sertifika/{serial}.pdf` to the route `src/app/sertifika/[serial]/pdf/route.ts` (the App Router has no `[serial].pdf` beside the page's `[serial]`); only letters and digits are rewritten.
 - The route asks core's `GET /v1/certificates/verify/{serial}/pdf` and streams it on: `application/pdf`, `inline` with the file name `SKYLAB-sertifika-{serial}.pdf`, `Cache-Control: no-store` unless core sends its own, `nosniff`, `noindex`, no Referer. Core decides every time, so a revoked certificate is `404` at once.
-- A serial that is not 16 or 32 hex characters is `404` without asking core. Core's `404`, `410` and `429` pass through as they are; core down or anything else is `502`.
+- A serial that is not 16 or 32 hex characters is `404` without asking core. Core's `404`, `410` and `429` pass through as they are; core gets 15 seconds (`504` past them), core down or anything else is `502`. A compressed answer is handed on without its `Content-Length` (fetch decodes the body).
 - Core is asked as for `/bilet`: over `CORE_INTERNAL_URL` when set, with the visitor's address as `X-Forwarded-For`, since core limits its public certificate routes per client. Core's own PDF address keeps working for the links already sent.
 
 ## skylcn-ui pages (`/kapi`, `/sertifika`, `/bilet`)

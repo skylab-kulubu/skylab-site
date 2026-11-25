@@ -151,3 +151,30 @@ test("core down, failing or answering something else is 502", async () => {
     assert.equal(res.headers.get("content-disposition"), null);
   }
 });
+
+test("a compressed answer loses its length: fetch hands on the decoded body", async () => {
+  const { fetchImpl } = recorder(
+    new Response(pdfBytes, {
+      status: 200,
+      headers: { "Content-Type": "application/pdf", "Content-Encoding": "gzip", "Content-Length": "9" },
+    }),
+  );
+  const res = await fetchCertificatePdf(SERIAL, undefined, { fetchImpl });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-length"), null);
+  assert.equal(res.headers.get("content-encoding"), null);
+});
+
+test("core is given 15 seconds; past them the answer is 504", async () => {
+  const { calls, fetchImpl } = recorder(new Response(pdfBytes, { headers: { "Content-Type": "application/pdf" } }));
+  await fetchCertificatePdf(SERIAL, undefined, { fetchImpl });
+  assert.ok(calls[0].init.signal instanceof AbortSignal);
+
+  const hanging = (_url, init) =>
+    new Promise((_resolve, reject) => {
+      init.signal.addEventListener("abort", () => reject(init.signal.reason));
+    });
+  const res = await fetchCertificatePdf(SERIAL, undefined, { fetchImpl: hanging, timeoutMs: 20 });
+  assert.equal(res.status, 504);
+  assert.equal(res.headers.get("cache-control"), "no-store");
+});

@@ -69,6 +69,10 @@ function copy(from: Headers, to: Headers, names: string[]) {
   }
 }
 
+// How long core has to answer and hand the PDF over (a certificate's PDF is
+// a few hundred kB); past it the visitor gets 504, not a hanging tab.
+const CORE_TIMEOUT_MS = 15_000;
+
 // The answer to /sertifika/{serial}.pdf. A serial that is not 16 or 32 hex
 // characters is 404 without asking core. Core is asked as the ticket page
 // asks it (src/lib/ticket-page.ts): over CORE_INTERNAL_URL when set, with
@@ -81,7 +85,8 @@ export async function fetchCertificatePdf(
     fetchImpl = fetch,
     visitor = null,
     coreInternalUrl,
-  }: { fetchImpl?: typeof fetch; visitor?: string | null; coreInternalUrl?: string } = {},
+    timeoutMs = CORE_TIMEOUT_MS,
+  }: { fetchImpl?: typeof fetch; visitor?: string | null; coreInternalUrl?: string; timeoutMs?: number } = {},
 ): Promise<Response> {
   if (!SERIAL_PATTERN.test(serial)) return new Response(null, { status: 404, headers: BASE_HEADERS });
 
@@ -89,10 +94,12 @@ export async function fetchCertificatePdf(
   try {
     upstream = await fetchImpl(corePdfUrl(internalOrigin(coreInternalUrl) ?? coreApiOrigin, serial), {
       cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMs),
       ...(visitor ? { headers: { "X-Forwarded-For": visitor } } : {}),
     });
-  } catch {
-    return new Response(null, { status: 502, headers: BASE_HEADERS });
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    return new Response(null, { status: timedOut ? 504 : 502, headers: BASE_HEADERS });
   }
 
   const headers = new Headers(BASE_HEADERS);
@@ -107,6 +114,9 @@ export async function fetchCertificatePdf(
   }
   headers.set("Content-Type", "application/pdf");
   headers.set("Content-Disposition", `inline; filename="${pdfFilename(serial)}"`);
-  copy(upstream.headers, headers, ["content-length", "cache-control", "etag", "last-modified"]);
+  copy(upstream.headers, headers, ["cache-control", "etag", "last-modified"]);
+  // fetch hands on the decoded body, so a compressed answer's length is not
+  // the body's: then the length is left out.
+  if (!upstream.headers.has("content-encoding")) copy(upstream.headers, headers, ["content-length"]);
   return new Response(upstream.body, { status: 200, headers });
 }
