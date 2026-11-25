@@ -41,6 +41,8 @@ export type CheckInOutcome =
   | "session-closed"
   | "event-cancelled"
   | "event-not-published"
+  | "ticket-cancelled"
+  | "ticket-waitlisted"
   | "scan-required"
   | "qr-invalid"
   | "qr-expired"
@@ -53,28 +55,46 @@ export type CheckInOutcome =
 // never by the title text. A `session_closed` may carry `reason` with the
 // Event's status (core's docs/event-cancel.md, docs/event-drafts.md); any
 // other reason, or none, keeps the general "session closed" answer.
+//
+// The status is only a fallback, for an answer without a code of its own
+// (a core from before the code, or one of core's generic codes that only
+// name the status). A 409 is not always an earlier check-in: a cancelled or
+// waitlisted Ticket is refused with 409 too, and an unknown code is no
+// reason to say anything else than "not now".
+const STATUS_ONLY_CODES = new Set(["bad_request", "unauthorized", "forbidden", "not_found"]);
+
 export function outcomeFor(status: number, code?: string | null, reason?: string | null): CheckInOutcome {
   if (status === 201 || status === 200) return "checked-in";
+  if (status === 429) return "rate-limited";
+  switch (code) {
+    case "already_checked_in":
+    case "already_entered":
+      return "already-checked-in";
+    case "ticket_cancelled":
+      return "ticket-cancelled";
+    case "ticket_waitlisted":
+      return "ticket-waitlisted";
+    case "email_or_ticket_key_required":
+      return "invalid-email";
+    case "guest_ticket_not_found":
+      return "no-ticket";
+    case "session_closed":
+      if (reason === "event_cancelled") return "event-cancelled";
+      if (reason === "event_not_published") return "event-not-published";
+      return "session-closed";
+    case "door_qr_required":
+      return "scan-required";
+    case "door_qr_invalid":
+      return "qr-invalid";
+    case "door_qr_expired":
+      return "qr-expired";
+    case "door_qr_used_up":
+      return "qr-used-up";
+  }
+  if (code && !STATUS_ONLY_CODES.has(code)) return "unavailable";
   if (status === 409) return "already-checked-in";
   if (status === 400) return "invalid-email";
   if (status === 404) return "no-ticket";
-  if (status === 429) return "rate-limited";
-  if (status === 403) {
-    switch (code) {
-      case "session_closed":
-        if (reason === "event_cancelled") return "event-cancelled";
-        if (reason === "event_not_published") return "event-not-published";
-        return "session-closed";
-      case "door_qr_required":
-        return "scan-required";
-      case "door_qr_invalid":
-        return "qr-invalid";
-      case "door_qr_expired":
-        return "qr-expired";
-      case "door_qr_used_up":
-        return "qr-used-up";
-    }
-  }
   return "unavailable";
 }
 
@@ -97,6 +117,8 @@ export function isFinal(outcome: CheckInOutcome): boolean {
     outcome === "session-closed" ||
     outcome === "event-cancelled" ||
     outcome === "event-not-published" ||
+    outcome === "ticket-cancelled" ||
+    outcome === "ticket-waitlisted" ||
     needsNewScan(outcome)
   );
 }
@@ -138,12 +160,14 @@ export function presentationFor(outcome: CheckInOutcome): OutcomePresentation {
     case "session-closed":
     case "event-cancelled":
     case "event-not-published":
+    case "ticket-waitlisted":
     case "rate-limited":
       return { tone: "warning", icon: "wait", replacesForm, blamesEmail };
     case "network":
       return { tone: "danger", icon: "offline", replacesForm, blamesEmail };
     case "invalid-email":
     case "no-ticket":
+    case "ticket-cancelled":
     case "unavailable":
       return { tone: "danger", icon: "alert", replacesForm, blamesEmail };
   }
@@ -199,6 +223,18 @@ export function messageFor(outcome: CheckInOutcome, retryAfter: number | null = 
         tone: "error",
         title: "Bu etkinlik henüz yayımlanmadı",
         detail: "Etkinlik yayımlanmadan giriş alınmıyor. Kapıdaki görevliye başvurun.",
+      };
+    case "ticket-cancelled":
+      return {
+        tone: "error",
+        title: "Biletiniz iptal edilmiş",
+        detail: "İptal edilen biletle giriş alınmıyor. Kapıdaki görevliye başvurun.",
+      };
+    case "ticket-waitlisted":
+      return {
+        tone: "error",
+        title: "Kaydınız bekleme listesinde",
+        detail: "Bekleme listesindeki kayıtla giriş alınmıyor. Kapıdaki görevliye başvurun.",
       };
     case "scan-required":
       return {

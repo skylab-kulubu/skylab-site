@@ -59,6 +59,49 @@ test("each answer of core has its own outcome", () => {
   assert.equal(outcomeFor(502), "unavailable");
 });
 
+// core answers a cancelled or waitlisted Ticket at the door with 409 too
+// (ticket/status.go inactiveErr, handlers/tickets.go ticketError): the code,
+// not the status, tells it from an earlier check-in.
+test("a refused Ticket is not taken for an earlier check-in", () => {
+  assert.equal(outcomeFor(409, "ticket_cancelled"), "ticket-cancelled");
+  assert.equal(outcomeFor(409, "ticket_waitlisted"), "ticket-waitlisted");
+  assert.equal(outcomeFor(409, "already_checked_in"), "already-checked-in");
+  assert.equal(outcomeFor(409, "already_entered"), "already-checked-in");
+  assert.equal(outcomeFor(409, "something_new"), "unavailable");
+  assert.equal(outcomeFor(409, "conflict"), "unavailable");
+});
+
+test("the code picks the answer whatever the status", () => {
+  assert.equal(outcomeFor(400, "email_or_ticket_key_required"), "invalid-email");
+  assert.equal(outcomeFor(400, "invalid_body"), "unavailable");
+  assert.equal(outcomeFor(400, "invalid_id"), "unavailable");
+  assert.equal(outcomeFor(404, "guest_ticket_not_found"), "no-ticket");
+  assert.equal(outcomeFor(429, "rate_limited"), "rate-limited");
+  assert.equal(outcomeFor(429), "rate-limited");
+});
+
+test("only an answer without a code of its own falls back to the status", () => {
+  assert.equal(outcomeFor(409, null), "already-checked-in");
+  assert.equal(outcomeFor(400, null), "invalid-email");
+  assert.equal(outcomeFor(404, null), "no-ticket");
+  assert.equal(outcomeFor(404, "not_found"), "no-ticket");
+  assert.equal(outcomeFor(400, "bad_request"), "invalid-email");
+  assert.equal(outcomeFor(403, "forbidden"), "unavailable");
+  assert.equal(outcomeFor(401, "unauthorized"), "unavailable");
+  assert.equal(outcomeFor(500, "internal_error"), "unavailable");
+});
+
+test("a refused Ticket locks the form and does not blame the e-mail", () => {
+  for (const outcome of ["ticket-cancelled", "ticket-waitlisted"]) {
+    assert.equal(isFinal(outcome), true, outcome);
+    assert.equal(needsNewScan(outcome), false, outcome);
+    assert.equal(presentationFor(outcome).blamesEmail, false, outcome);
+    assert.equal(messageFor(outcome).tone, "error", outcome);
+  }
+  assert.match(messageFor("ticket-cancelled").title, /iptal/);
+  assert.match(messageFor("ticket-waitlisted").title, /bekleme listesinde/);
+});
+
 test("a closed session says why when core gives the Event's status as the reason", () => {
   assert.equal(outcomeFor(403, "session_closed", "event_cancelled"), "event-cancelled");
   assert.equal(outcomeFor(403, "session_closed", "event_not_published"), "event-not-published");
@@ -103,6 +146,8 @@ test("every outcome has a Turkish message", () => {
     "session-closed",
     "event-cancelled",
     "event-not-published",
+    "ticket-cancelled",
+    "ticket-waitlisted",
     "scan-required",
     "qr-invalid",
     "qr-expired",
@@ -127,6 +172,8 @@ const ALL_OUTCOMES = [
   "invalid-email",
   "no-ticket",
   "session-closed",
+  "ticket-cancelled",
+  "ticket-waitlisted",
   "scan-required",
   "qr-invalid",
   "qr-expired",
