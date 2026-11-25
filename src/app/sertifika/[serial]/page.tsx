@@ -4,6 +4,7 @@ import { BadgeCheck, BadgeX, Download, House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import { attendanceLine, type CertificateAttendance } from "@/lib/certificate-attendance";
 import { certificateLookupUrl } from "@/lib/certificate-lookup";
+import { certificatePdfPath } from "@/lib/certificate-pdf";
 import { SERIAL_PATTERN } from "@/lib/certificate-serial";
 import { organizerName } from "@/lib/ticket-page";
 
@@ -58,16 +59,6 @@ async function findCertificate(serial: string): Promise<LookupResult> {
     };
   } catch {
     return { kind: "unavailable" };
-  }
-}
-
-function safeHttpsUrl(value?: string) {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" ? url.toString() : null;
-  } catch {
-    return null;
   }
 }
 
@@ -131,7 +122,10 @@ export default async function CertificateVerificationPage({
 
 function CertificateDetails({ certificate }: { certificate: PublicCertificate }) {
   const valid = certificate.status === "valid";
-  const pdfUrl = valid ? safeHttpsUrl(certificate.pdfUrl) : null;
+  // Core sends pdfUrl only for a valid certificate that has one; the button
+  // opens the PDF on this site's address (/sertifika/{serial}.pdf), whichever
+  // address core gives.
+  const pdfUrl = valid && certificate.pdfUrl ? certificatePdfPath(certificate.serial) : null;
   const StatusIcon = valid ? BadgeCheck : BadgeX;
   const attendance = attendanceLine(certificate.attendance);
   const details: DescriptionItem[] = [
