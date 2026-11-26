@@ -278,6 +278,71 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * ARTLAB (core's theme.key "artlab"): ARTLAB's own look, from artlab-site's
+ * globals.css (the 2026 theme): the dark ground, light ink, the amber accent
+ * (--ticket-color, lightened to 4.5:1 on the ground), cyan links, Unbounded
+ * for the titles and Manrope for the text. The QR stays black on white.
+ */
+.card[data-theme="artlab"] {
+  --al-ground: #0b0e13;
+  --al-line: #2a3544;
+  --al-ink: #e9edf2;
+  --al-ink-2: #8a95a5;
+  --al-cyan: #3ed6f0;
+  color: var(--al-ink);
+  font-family: var(--font-manrope-sans), system-ui, sans-serif;
+}
+
+.card[data-theme="artlab"] .face {
+  border-radius: 4px;
+  background:
+    radial-gradient(110% 55% at 100% 0%, rgb(62 214 240 / 12%), transparent 62%),
+    radial-gradient(90% 45% at 0% 100%, rgb(245 184 46 / 10%), transparent 60%),
+    var(--al-ground);
+  box-shadow: inset 0 0 0 1px var(--al-line);
+}
+
+.card[data-theme="artlab"] .frontTitle,
+.card[data-theme="artlab"] .backTitle {
+  font-family: var(--font-artlab-display), var(--font-manrope-sans), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.card[data-theme="artlab"] .frontTitle {
+  font-size: 25px;
+}
+
+.card[data-theme="artlab"] .backTitle {
+  font-size: 22px;
+}
+
+.card[data-theme="artlab"] .frontWhen,
+.card[data-theme="artlab"] .backWhen {
+  color: var(--ticket-color);
+}
+
+.card[data-theme="artlab"] .venue,
+.card[data-theme="artlab"] .code {
+  color: var(--al-ink-2);
+}
+
+.card[data-theme="artlab"] .qr {
+  box-shadow: 0 0 0 2px var(--ticket-color);
+}
+
+.card[data-theme="artlab"] .links a {
+  color: var(--al-cyan);
+}
+
+.card[data-theme="artlab"] .turn:focus-visible,
+.card[data-theme="artlab"] .qr:focus-visible,
+.card[data-theme="artlab"] .links a:focus-visible {
+  outline-color: var(--al-cyan);
+}
+
 /* Reduced motion: no float, no turn in space; the faces cross-fade. */
 @media (prefers-reduced-motion: reduce) {
   .float {
@@ -332,5 +397,25 @@
   .venue,
   .code {
     color: #000;
+  }
+
+  /* ARTLAB prints as Kurumsal does: black on white, no glow, no accent. */
+  .card[data-theme="artlab"] {
+    color: #000;
+  }
+
+  .card[data-theme="artlab"] .face {
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .card[data-theme="artlab"] .backWhen,
+  .card[data-theme="artlab"] .venue,
+  .card[data-theme="artlab"] .code {
+    color: #000;
+  }
+
+  .card[data-theme="artlab"] .qr {
+    box-shadow: none;
   }
 }

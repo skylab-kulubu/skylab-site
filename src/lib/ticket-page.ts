@@ -21,6 +21,20 @@ const PRODUCTION_CORE = "https://api.yildizskylab.com";
 // (core's Kurumsal theme uses the same).
 export const SKYLAB_PURPLE = "#7C3AED";
 
+// The Event's look, core's theme.key: "artlab" draws the card in ARTLAB's own
+// colours (artlab-site's globals.css, the 2026 theme), anything else, or none
+// from an older core, is the club's Kurumsal look.
+export type TicketTheme = "kurumsal" | "artlab";
+
+export function themeKey(theme: unknown): TicketTheme {
+  const key = theme && typeof theme === "object" ? (theme as Record<string, unknown>).key : null;
+  return typeof key === "string" && key.trim().toLowerCase() === "artlab" ? "artlab" : "kurumsal";
+}
+
+// ARTLAB's ground and its accent (artlab-site --bg and --amber).
+export const ARTLAB_GROUND = "#0B0E13";
+export const ARTLAB_AMBER = "#F5B82E";
+
 // 26 characters of A–Z and 2–7 (128 random bits, base32). Anything else is
 // answered "not found" without asking core, as core itself would.
 const TICKET_KEY = /^[A-Z2-7]{26}$/;
@@ -94,6 +108,8 @@ export type PublicTicket = {
   ticketAccentColor: string | null;
   // theme.accent: the colour core gives the ticket (its PDF has the same).
   themeAccent: string | null;
+  // theme.key: the Event's look.
+  theme: TicketTheme;
 };
 
 const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
@@ -128,6 +144,7 @@ export function parseTicket(body: unknown): PublicTicket | null {
     ticketAccentColor: optionalText(raw.ticketAccentColor),
     themeAccent:
       raw.theme && typeof raw.theme === "object" ? optionalText((raw.theme as Record<string, unknown>).accent) : null,
+    theme: themeKey(raw.theme),
   };
 }
 
@@ -353,6 +370,11 @@ export function contrastWithWhite(hex: string): number {
   return 1.05 / (luminance(hex) + 0.05);
 }
 
+export function contrast(a: string, b: string): number {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+}
+
 // The card's colour: the Event's ticket colour (ticketAccentColor, else core's
 // theme.accent), else its cover's first colour, else the club's purple;
 // darkened until white text on it reaches 4.5:1 (WCAG AA), since a cover's
@@ -363,6 +385,21 @@ export function cardColor(accents: (string | null)[], coverColors: string[]): st
   while (contrastWithWhite(hex) < 4.5) {
     const darker = [1, 3, 5].map((i) => Math.floor(parseInt(hex.slice(i, i + 2), 16) * 0.9));
     hex = `#${darker.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  }
+  return hex;
+}
+
+// The ARTLAB card's accent, on ARTLAB's dark ground: the Event's ticket colour,
+// else ARTLAB's amber; lightened until it reaches 4.5:1 on the ground (WCAG
+// AA), since the accent colours text there.
+export function artlabAccent(ticketAccentColor: string | null): string {
+  let hex = (ticketAccentColor && HEX.test(ticketAccentColor) ? ticketAccentColor : ARTLAB_AMBER).toLowerCase();
+  while (contrast(hex, ARTLAB_GROUND) < 4.5) {
+    const lighter = [1, 3, 5].map((i) => {
+      const c = parseInt(hex.slice(i, i + 2), 16);
+      return Math.ceil(c + (255 - c) * 0.1);
+    });
+    hex = `#${lighter.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
   }
   return hex;
 }
@@ -389,6 +426,7 @@ export function mapsLink(ticket: Pick<PublicTicket, "mapsUrl" | "venueLat" | "ve
 // What the card draws: plain data, handed from the server to the browser.
 export type TicketView = {
   state: TicketState;
+  theme: TicketTheme;
   eventName: string;
   organizer: string;
   front: When | null;
@@ -409,6 +447,7 @@ export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefin
   const cover = coverUrl(ticket.coverImageUrl, coreApiOrigin);
   return {
     state: ticket.state,
+    theme: ticket.theme,
     eventName: ticket.eventName,
     organizer: organizerName(ticket.organizerName, ticket.ownerTeam),
     front: frontWhen(ticket.eventStart),
@@ -416,7 +455,13 @@ export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefin
     venue: ticket.venue,
     holderName: ticket.holderName,
     code: ticket.code,
-    color: cardColor([ticket.ticketAccentColor, ticket.themeAccent], ticket.coverColors),
+    // Kurumsal: the card is the colour (ticketAccentColor, core's theme.accent, the cover's first,
+    // the purple). ARTLAB: the card is ARTLAB's ground and the colour its accent (ticketAccentColor,
+    // else ARTLAB's amber).
+    color:
+      ticket.theme === "artlab"
+        ? artlabAccent(ticket.ticketAccentColor)
+        : cardColor([ticket.ticketAccentColor, ticket.themeAccent], ticket.coverColors),
     coverSrc: cover,
     qrSrc: cancelled ? null : trustedUrl(ticket.qrUrl, coreApiOrigin),
     pdfHref: cancelled ? null : trustedUrl(ticket.pdfUrl, coreApiOrigin),

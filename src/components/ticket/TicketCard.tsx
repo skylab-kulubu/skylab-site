@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { Unbounded } from "next/font/google";
 import { SkylabMark } from "@skylab-kulubu/skylcn-ui";
 import type { TicketView, When } from "@/lib/ticket-page";
 import styles from "./TicketCard.module.css";
@@ -12,6 +14,18 @@ import styles from "./TicketCard.module.css";
 // few pixels while its front shows; it stands still whenever the QR is in
 // view, so a scanner reads it, and never moves with reduced motion.
 // No text tells the holder what to do: the card carries data only.
+// An Event in the ARTLAB theme gets ARTLAB's look (TicketCard.module.css):
+// its dark ground, amber accent, cyan links, Unbounded titles and its icon.
+
+// ARTLAB's display face (artlab-site's --font-display). Not preloaded: only an
+// ARTLAB card uses it, so a Kurumsal ticket never downloads it.
+const unbounded = Unbounded({
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600"],
+  variable: "--font-artlab-display",
+  display: "swap",
+  preload: false,
+});
 
 function WhenLine({ when, className }: { when: When; className?: string }) {
   return (
@@ -41,7 +55,11 @@ function Front({
         <img className={styles.cover} src={view.coverSrc} alt="" referrerPolicy="no-referrer" decoding="async" />
       ) : null}
       <div className={view.coverSrc ? styles.shade : undefined} />
-      <SkylabMark size={24} className={styles.mark} />
+      {view.theme === "artlab" ? (
+        <Image className={styles.mark} src="/img/events/artlab-2026.svg" alt="ARTLAB" width={30} height={30} />
+      ) : (
+        <SkylabMark size={24} className={styles.mark} />
+      )}
       <div className={styles.frontText}>
         <h1 className={styles.frontTitle}>{view.eventName}</h1>
         {view.front ? <WhenLine when={view.front} className={styles.frontWhen} /> : null}
@@ -123,7 +141,12 @@ export default function TicketCard({ view }: { view: TicketView }) {
   return (
     <>
       <div className={styles.float} data-still={still || undefined}>
-        <div className={styles.card} data-face={face} style={{ "--ticket-color": view.color } as React.CSSProperties}>
+        <div
+          className={`${styles.card} ${view.theme === "artlab" ? unbounded.variable : ""}`}
+          data-face={face}
+          data-theme={view.theme}
+          style={{ "--ticket-color": view.color } as React.CSSProperties}
+        >
           <Front view={view} hidden={face !== "front"} onTurn={cancelled ? undefined : turn} turnRef={frontTurn} />
           {cancelled ? null : (
             <section className={`${styles.face} ${styles.back}`} inert={face !== "back"}>
