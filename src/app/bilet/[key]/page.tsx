@@ -69,7 +69,7 @@ export default async function TicketPage({ params }: { params: Promise<{ key: st
         eventStart={result.ticket.eventStart}
         eventEnd={result.ticket.eventEnd}
         organizer={view.organizer}
-        organizerLogo={organizerLogo(result.ticket.ownerTeam, result.ticket.eventName)}
+        organizerLogo={organizerLogo(result.ticket.ownerTeam, result.ticket.eventName, result.ticket.theme)}
         coverSrc={view.coverSrc}
       />
       {/* Only while core says so: an older core sends no `cancellable`, and offers no cancel */}

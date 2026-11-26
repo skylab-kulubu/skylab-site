@@ -3,8 +3,13 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
+  ARTLAB_ORANGE,
+  ARTLAB_GROUND,
+  ARTLAB_OVER_WHITE,
+  artlabAccent,
   backWhen,
   cardColor,
+  contrast,
   contrastWithWhite,
   coverUrl,
   findTicket,
@@ -12,6 +17,7 @@ import {
   internalCoreOrigin,
   isTicketKey,
   mapsLink,
+  themeKey,
   openingFace,
   organizerName,
   parseTicket,
@@ -214,6 +220,60 @@ test("theme.accent is read as the ticket's colour", () => {
   assert.equal(ticketView(parseTicket(answer({ theme: { accent: "#26446e" } })), CORE, new Date()).color, "#26446e");
 });
 
+test("theme.key: artlab is ARTLAB's look, anything else or none (an older core) Kurumsal", () => {
+  assert.equal(parseTicket(answer({ theme: { key: "artlab", accent: "#8B5CF6" } })).theme, "artlab");
+  assert.equal(parseTicket(answer({ theme: { key: " ARTLAB " } })).theme, "artlab");
+  assert.equal(parseTicket(answer()).theme, "kurumsal");
+  for (const theme of [undefined, null, {}, { key: "" }, { key: "neon" }, { key: 3 }, "artlab"]) {
+    assert.equal(themeKey(theme), "kurumsal", JSON.stringify(theme));
+  }
+});
+
+test("a Kurumsal ticket keeps today's colour order: ticketAccentColor, theme.accent, the cover, the purple", () => {
+  const at = new Date("2026-12-12T08:00:00Z");
+  const view = (extra) => ticketView(parseTicket(answer(extra)), CORE, at);
+  assert.equal(view({ ticketAccentColor: "#26446E", theme: { key: "kurumsal", accent: "#1F4E79" } }).color, "#26446e");
+  assert.equal(view({ theme: { key: "kurumsal", accent: "#1F4E79" }, coverColors: ["#0F766E"] }).color, "#1f4e79");
+  assert.equal(view({ theme: { key: "kurumsal" }, coverColors: ["#0F766E"] }).color, "#0f766e");
+  assert.equal(view({ theme: undefined }).color, SKYLAB_PURPLE.toLowerCase());
+  assert.equal(view({}).theme, "kurumsal");
+});
+
+test("an ARTLAB ticket: ticketAccentColor, else ARTLAB's orange, never the cover's colour or core's Kurumsal accent", () => {
+  const at = new Date("2026-12-12T08:00:00Z");
+  const view = (extra) => ticketView(parseTicket(answer({ coverColors: ["#0F766E"], ...extra })), CORE, at);
+  assert.equal(view({ theme: { key: "artlab", accent: "#0F766E" } }).color, ARTLAB_ORANGE.toLowerCase());
+  assert.equal(view({ theme: { key: "artlab" }, ticketAccentColor: "#3ED6F0" }).color, "#3ed6f0");
+  assert.equal(view({ theme: { key: "artlab" }, ticketAccentColor: "cyan" }).color, ARTLAB_ORANGE.toLowerCase());
+  assert.equal(view({ theme: { key: "artlab" } }).theme, "artlab");
+});
+
+test("ARTLAB's accent is readable on its dark ground (WCAG AA 4.5:1), a dark ticket colour lightened", () => {
+  assert.ok(contrast(ARTLAB_ORANGE, ARTLAB_GROUND) >= 4.5);
+  // the page's other ARTLAB colours: ink, second ink, electric blue links (TicketCard.module.css)
+  for (const ink of ["#eaf2ff", "#8fa3bf", "#3aa0ff"]) assert.ok(contrast(ink, ARTLAB_GROUND) >= 4.5, ink);
+  for (const dark of ["#000000", "#26446e", "#7c3aed", "#0a1222", "#8a5a00"]) {
+    const color = artlabAccent(dark);
+    assert.ok(contrast(color, ARTLAB_GROUND) >= 4.5, `${dark} → ${color}`);
+    assert.ok(contrast(color, ARTLAB_OVER_WHITE) >= 4.5, `${dark} → ${color} over a white cover`);
+  }
+  assert.equal(artlabAccent(null), ARTLAB_ORANGE.toLowerCase());
+  // the same colours as core's ARTLAB PDF (theme B): ground and orange
+  assert.equal(ARTLAB_GROUND, "#0A1222");
+  assert.equal(ARTLAB_ORANGE, "#FF8A1F");
+  // the card's CSS uses exactly the colours checked above
+  const css = readFileSync(new URL("../src/components/ticket/TicketCard.module.css", import.meta.url), "utf8");
+  for (const decl of ["--al-ground: #0a1222", "--al-ink: #eaf2ff", "--al-ink-2: #8fa3bf", "--al-blue: #3aa0ff"]) {
+    assert.ok(css.includes(decl), decl);
+  }
+  // over the cover the front's date stands on the ground at 85%: over white that is ARTLAB_OVER_WHITE
+  assert.match(css, /\.cover ~ \.frontText \.frontWhen \{[^}]*background: rgb\(10 18 34 \/ 85%\);/);
+  const overWhite = [1, 3, 5].map((i) => Math.round(parseInt(ARTLAB_GROUND.slice(i, i + 2), 16) * 0.85 + 255 * 0.15));
+  assert.equal(`#${overWhite.map((c) => c.toString(16).padStart(2, "0")).join("")}`.toUpperCase(), ARTLAB_OVER_WHITE);
+  assert.ok(contrast(ARTLAB_ORANGE, ARTLAB_OVER_WHITE) >= 4.5);
+  assert.equal(contrast("#ffffff", "#000000"), 21);
+});
+
 test("Haritada aç: core's link, else the point, else the place's name", () => {
   const base = { mapsUrl: null, venueLat: null, venueLng: null, venue: "YTÜ Davutpaşa" };
   assert.equal(
@@ -321,4 +381,19 @@ test("a malformed key is never posted to core", async () => {
   };
   assert.deepEqual(await requestCancel("../../v1/x", CORE, { fetchImpl: counting }), { kind: "not-found" });
   assert.equal(calls, 0);
+});
+
+test("the card names its theme data-ticket-theme, never skylcn-ui's data-theme (dark/light)", () => {
+  const card = readFileSync(new URL("../src/components/ticket/TicketCard.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/components/ticket/TicketCard.module.css", import.meta.url), "utf8");
+  assert.match(card, /data-ticket-theme=\{view\.theme\}/);
+  assert.doesNotMatch(card, /data-theme=/);
+  assert.doesNotMatch(css, /\[data-theme/);
+  assert.match(css, /\.card\[data-ticket-theme="artlab"\]/);
+});
+
+test("print shows the back even with reduced motion and the front in view", () => {
+  const css = readFileSync(new URL("../src/components/ticket/TicketCard.module.css", import.meta.url), "utf8");
+  const print = css.slice(css.indexOf("@media print"));
+  assert.match(print, /\.back \{[^}]*opacity: 1 !important;/);
 });

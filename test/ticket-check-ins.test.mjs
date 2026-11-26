@@ -120,7 +120,13 @@ test("the organizer's own logo: an event of the club's with one, else the team's
   assert.equal(organizerLogo("WEBLAB", "Next.js Atölyesi")?.src, "/img/teams/weblablogobeyaz.svg");
   assert.equal(organizerLogo("weblab", "x")?.alt, "WEBLAB");
   assert.equal(organizerLogo("GECEKODU", "Gece Kodu #42")?.src, "/img/teams/gecekodubeyaz.png");
-  assert.equal(organizerLogo("AIRLAB", "ARTLAB 2026")?.src, "/img/events/artlab.png");
+  assert.equal(organizerLogo("YK", "8. ARTLAB: Yapay Zeka Zirvesi", "artlab")?.src, "/img/events/artlab-2026.svg");
+  assert.equal(organizerLogo("YK", "Yapay Zeka Zirvesi", "artlab")?.alt, "ARTLAB");
+  // the logo follows the theme, not the name: a Kurumsal ARTLAB, an older core
+  assert.equal(organizerLogo("AIRLAB", "ARTLAB 2026", "kurumsal"), null);
+  assert.equal(organizerLogo("AIRLAB", "ARTLAB 2026"), null);
+  assert.equal(organizerLogo("WEBLAB", "x", "kurumsal")?.alt, "WEBLAB");
+  assert.equal(organizerLogo("WEBLAB", "x", "toString")?.alt, "WEBLAB");
   assert.equal(organizerLogo("SKY-SEC", "SKYDAYS '26")?.src, "/img/events/skydays.png");
   assert.equal(organizerLogo("GAMELAB", "YıldızJam")?.src, "/img/events/yildizjam.png");
   assert.equal(organizerLogo("YK", "SKY LAB Tanışma Günü"), null);
