@@ -36,6 +36,11 @@ export function themeKey(theme: unknown): TicketTheme {
 export const ARTLAB_GROUND = "#0A1222";
 export const ARTLAB_ORANGE = "#FF8A1F";
 
+// Over the cover the front's date sits on the ground at 85%
+// (TicketCard.module.css): over a white picture that is this colour, the
+// lightest the date can stand on.
+export const ARTLAB_OVER_WHITE = "#2F3643";
+
 // 26 characters of A–Z and 2–7 (128 random bits, base32). Anything else is
 // answered "not found" without asking core, as core itself would.
 const TICKET_KEY = /^[A-Z2-7]{26}$/;
@@ -391,11 +396,12 @@ export function cardColor(accents: (string | null)[], coverColors: string[]): st
 }
 
 // The ARTLAB card's accent, on ARTLAB's dark ground: the Event's ticket colour,
-// else ARTLAB's orange; lightened until it reaches 4.5:1 on the ground (WCAG
-// AA), since the accent colours text there.
+// else ARTLAB's orange; lightened until it reaches 4.5:1 (WCAG AA) on the
+// lightest ground it may stand on (the date over a white cover), since the
+// accent colours text there.
 export function artlabAccent(ticketAccentColor: string | null): string {
   let hex = (ticketAccentColor && HEX.test(ticketAccentColor) ? ticketAccentColor : ARTLAB_ORANGE).toLowerCase();
-  while (contrast(hex, ARTLAB_GROUND) < 4.5) {
+  while (contrast(hex, ARTLAB_OVER_WHITE) < 4.5) {
     const lighter = [1, 3, 5].map((i) => {
       const c = parseInt(hex.slice(i, i + 2), 16);
       return Math.ceil(c + (255 - c) * 0.1);

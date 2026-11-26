@@ -146,7 +146,7 @@ export default function TicketCard({ view }: { view: TicketView }) {
         <div
           className={`${styles.card} ${view.theme === "artlab" ? exo2.variable : ""}`}
           data-face={face}
-          data-theme={view.theme}
+          data-ticket-theme={view.theme}
           style={{ "--ticket-color": view.color } as React.CSSProperties}
         >
           <Front view={view} hidden={face !== "front"} onTurn={cancelled ? undefined : turn} turnRef={frontTurn} />
