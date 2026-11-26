@@ -389,11 +389,13 @@
     display: none !important;
   }
 
+  /* Shown whichever face is in view: with reduced motion the face out of view is faded out. */
   .back {
     transform: none;
     background: #fff;
     min-height: 0;
     break-inside: avoid;
+    opacity: 1 !important;
   }
 
   .venue,

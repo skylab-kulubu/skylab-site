@@ -375,3 +375,9 @@ test("a malformed key is never posted to core", async () => {
   assert.deepEqual(await requestCancel("../../v1/x", CORE, { fetchImpl: counting }), { kind: "not-found" });
   assert.equal(calls, 0);
 });
+
+test("print shows the back even with reduced motion and the front in view", () => {
+  const css = readFileSync(new URL("../src/components/ticket/TicketCard.module.css", import.meta.url), "utf8");
+  const print = css.slice(css.indexOf("@media print"));
+  assert.match(print, /\.back \{[^}]*opacity: 1 !important;/);
+});
