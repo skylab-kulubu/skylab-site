@@ -279,17 +279,18 @@
 }
 
 /*
- * ARTLAB (core's theme.key "artlab"): ARTLAB's own look, from artlab-site's
- * globals.css (the 2026 theme): the dark ground, light ink, the amber accent
- * (--ticket-color, lightened to 4.5:1 on the ground), cyan links, Unbounded
- * for the titles and Manrope for the text. The QR stays black on white.
+ * ARTLAB (core's theme.key "artlab"): the poster's look, the colours of core's
+ * ARTLAB ticket PDF (internal/ticket/theme/artlab.go): the dark blue ground,
+ * light ink, the orange accent (--ticket-color, lightened to 4.5:1 on the
+ * ground), electric blue links, Exo 2 for the titles and Manrope for the
+ * text. The QR stays black on white.
  */
 .card[data-theme="artlab"] {
-  --al-ground: #0b0e13;
-  --al-line: #2a3544;
-  --al-ink: #e9edf2;
-  --al-ink-2: #8a95a5;
-  --al-cyan: #3ed6f0;
+  --al-ground: #0a1222;
+  --al-line: #2b3d5c;
+  --al-ink: #eaf2ff;
+  --al-ink-2: #8fa3bf;
+  --al-blue: #3aa0ff;
   color: var(--al-ink);
   font-family: var(--font-manrope-sans), system-ui, sans-serif;
 }
@@ -297,8 +298,9 @@
 .card[data-theme="artlab"] .face {
   border-radius: 4px;
   background:
-    radial-gradient(110% 55% at 100% 0%, rgb(62 214 240 / 12%), transparent 62%),
-    radial-gradient(90% 45% at 0% 100%, rgb(245 184 46 / 10%), transparent 60%),
+    linear-gradient(90deg, #ff8a1f, #3aa0ff) top / 100% 3px no-repeat,
+    radial-gradient(110% 55% at 100% 0%, rgb(58 160 255 / 16%), transparent 62%),
+    radial-gradient(90% 45% at 0% 100%, rgb(255 138 31 / 12%), transparent 60%),
     var(--al-ground);
   box-shadow: inset 0 0 0 1px var(--al-line);
 }
@@ -306,17 +308,17 @@
 .card[data-theme="artlab"] .frontTitle,
 .card[data-theme="artlab"] .backTitle {
   font-family: var(--font-artlab-display), var(--font-manrope-sans), sans-serif;
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
 }
 
 .card[data-theme="artlab"] .frontTitle {
-  font-size: 25px;
+  font-size: 28px;
 }
 
 .card[data-theme="artlab"] .backTitle {
-  font-size: 22px;
+  font-size: 26px;
 }
 
 .card[data-theme="artlab"] .frontWhen,
@@ -334,13 +336,13 @@
 }
 
 .card[data-theme="artlab"] .links a {
-  color: var(--al-cyan);
+  color: var(--al-blue);
 }
 
 .card[data-theme="artlab"] .turn:focus-visible,
 .card[data-theme="artlab"] .qr:focus-visible,
 .card[data-theme="artlab"] .links a:focus-visible {
-  outline-color: var(--al-cyan);
+  outline-color: var(--al-blue);
 }
 
 /* Reduced motion: no float, no turn in space; the faces cross-fade. */

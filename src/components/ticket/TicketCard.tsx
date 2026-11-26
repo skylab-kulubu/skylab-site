@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Unbounded } from "next/font/google";
+import { Exo_2 } from "next/font/google";
 import { SkylabMark } from "@skylab-kulubu/skylcn-ui";
 import type { TicketView, When } from "@/lib/ticket-page";
 import styles from "./TicketCard.module.css";
@@ -15,13 +15,15 @@ import styles from "./TicketCard.module.css";
 // view, so a scanner reads it, and never moves with reduced motion.
 // No text tells the holder what to do: the card carries data only.
 // An Event in the ARTLAB theme gets ARTLAB's look (TicketCard.module.css):
-// its dark ground, amber accent, cyan links, Unbounded titles and its icon.
+// the poster's dark ground, orange accent and electric blue links, Exo 2
+// titles (as core's ARTLAB ticket PDF) and ARTLAB's icon.
 
-// ARTLAB's display face (artlab-site's --font-display). Not preloaded: only an
-// ARTLAB card uses it, so a Kurumsal ticket never downloads it.
-const unbounded = Unbounded({
+// ARTLAB's heading face, the one core embeds in the ARTLAB PDF (Exo 2, full
+// Turkish). Not preloaded: only an ARTLAB card uses it, so a Kurumsal ticket
+// never downloads it.
+const exo2 = Exo_2({
   subsets: ["latin", "latin-ext"],
-  weight: ["500", "600"],
+  weight: ["800"],
   variable: "--font-artlab-display",
   display: "swap",
   preload: false,
@@ -142,7 +144,7 @@ export default function TicketCard({ view }: { view: TicketView }) {
     <>
       <div className={styles.float} data-still={still || undefined}>
         <div
-          className={`${styles.card} ${view.theme === "artlab" ? unbounded.variable : ""}`}
+          className={`${styles.card} ${view.theme === "artlab" ? exo2.variable : ""}`}
           data-face={face}
           data-theme={view.theme}
           style={{ "--ticket-color": view.color } as React.CSSProperties}

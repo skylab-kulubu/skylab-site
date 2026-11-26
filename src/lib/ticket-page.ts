@@ -21,8 +21,8 @@ const PRODUCTION_CORE = "https://api.yildizskylab.com";
 // (core's Kurumsal theme uses the same).
 export const SKYLAB_PURPLE = "#7C3AED";
 
-// The Event's look, core's theme.key: "artlab" draws the card in ARTLAB's own
-// colours (artlab-site's globals.css, the 2026 theme), anything else, or none
+// The Event's look, core's theme.key: "artlab" draws the card in ARTLAB's
+// colours (the poster's, as core's ARTLAB ticket PDF), anything else, or none
 // from an older core, is the club's Kurumsal look.
 export type TicketTheme = "kurumsal" | "artlab";
 
@@ -31,9 +31,10 @@ export function themeKey(theme: unknown): TicketTheme {
   return typeof key === "string" && key.trim().toLowerCase() === "artlab" ? "artlab" : "kurumsal";
 }
 
-// ARTLAB's ground and its accent (artlab-site --bg and --amber).
-export const ARTLAB_GROUND = "#0B0E13";
-export const ARTLAB_AMBER = "#F5B82E";
+// ARTLAB's ground and its accent: the poster's dark blue and orange, the
+// colours of core's ARTLAB theme (internal/ticket/theme/artlab.go).
+export const ARTLAB_GROUND = "#0A1222";
+export const ARTLAB_ORANGE = "#FF8A1F";
 
 // 26 characters of A–Z and 2–7 (128 random bits, base32). Anything else is
 // answered "not found" without asking core, as core itself would.
@@ -390,10 +391,10 @@ export function cardColor(accents: (string | null)[], coverColors: string[]): st
 }
 
 // The ARTLAB card's accent, on ARTLAB's dark ground: the Event's ticket colour,
-// else ARTLAB's amber; lightened until it reaches 4.5:1 on the ground (WCAG
+// else ARTLAB's orange; lightened until it reaches 4.5:1 on the ground (WCAG
 // AA), since the accent colours text there.
 export function artlabAccent(ticketAccentColor: string | null): string {
-  let hex = (ticketAccentColor && HEX.test(ticketAccentColor) ? ticketAccentColor : ARTLAB_AMBER).toLowerCase();
+  let hex = (ticketAccentColor && HEX.test(ticketAccentColor) ? ticketAccentColor : ARTLAB_ORANGE).toLowerCase();
   while (contrast(hex, ARTLAB_GROUND) < 4.5) {
     const lighter = [1, 3, 5].map((i) => {
       const c = parseInt(hex.slice(i, i + 2), 16);
@@ -457,7 +458,7 @@ export function ticketView(ticket: PublicTicket, coreApiOrigin: string | undefin
     code: ticket.code,
     // Kurumsal: the card is the colour (ticketAccentColor, core's theme.accent, the cover's first,
     // the purple). ARTLAB: the card is ARTLAB's ground and the colour its accent (ticketAccentColor,
-    // else ARTLAB's amber).
+    // else ARTLAB's orange).
     color:
       ticket.theme === "artlab"
         ? artlabAccent(ticket.ticketAccentColor)

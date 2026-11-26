@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  ARTLAB_AMBER,
+  ARTLAB_ORANGE,
   ARTLAB_GROUND,
   artlabAccent,
   backWhen,
@@ -238,24 +238,32 @@ test("a Kurumsal ticket keeps today's colour order: ticketAccentColor, theme.acc
   assert.equal(view({}).theme, "kurumsal");
 });
 
-test("an ARTLAB ticket: ticketAccentColor, else ARTLAB's amber, never the cover's colour or core's Kurumsal accent", () => {
+test("an ARTLAB ticket: ticketAccentColor, else ARTLAB's orange, never the cover's colour or core's Kurumsal accent", () => {
   const at = new Date("2026-12-12T08:00:00Z");
   const view = (extra) => ticketView(parseTicket(answer({ coverColors: ["#0F766E"], ...extra })), CORE, at);
-  assert.equal(view({ theme: { key: "artlab", accent: "#0F766E" } }).color, ARTLAB_AMBER.toLowerCase());
+  assert.equal(view({ theme: { key: "artlab", accent: "#0F766E" } }).color, ARTLAB_ORANGE.toLowerCase());
   assert.equal(view({ theme: { key: "artlab" }, ticketAccentColor: "#3ED6F0" }).color, "#3ed6f0");
-  assert.equal(view({ theme: { key: "artlab" }, ticketAccentColor: "cyan" }).color, ARTLAB_AMBER.toLowerCase());
+  assert.equal(view({ theme: { key: "artlab" }, ticketAccentColor: "cyan" }).color, ARTLAB_ORANGE.toLowerCase());
   assert.equal(view({ theme: { key: "artlab" } }).theme, "artlab");
 });
 
 test("ARTLAB's accent is readable on its dark ground (WCAG AA 4.5:1), a dark ticket colour lightened", () => {
-  assert.ok(contrast(ARTLAB_AMBER, ARTLAB_GROUND) >= 4.5);
-  // the page's other ARTLAB colours: ink, second ink, cyan links (TicketCard.module.css)
-  for (const ink of ["#e9edf2", "#8a95a5", "#3ed6f0"]) assert.ok(contrast(ink, ARTLAB_GROUND) >= 4.5, ink);
-  for (const dark of ["#000000", "#26446e", "#7c3aed", "#0b0e13"]) {
+  assert.ok(contrast(ARTLAB_ORANGE, ARTLAB_GROUND) >= 4.5);
+  // the page's other ARTLAB colours: ink, second ink, electric blue links (TicketCard.module.css)
+  for (const ink of ["#eaf2ff", "#8fa3bf", "#3aa0ff"]) assert.ok(contrast(ink, ARTLAB_GROUND) >= 4.5, ink);
+  for (const dark of ["#000000", "#26446e", "#7c3aed", "#0a1222"]) {
     const color = artlabAccent(dark);
     assert.ok(contrast(color, ARTLAB_GROUND) >= 4.5, `${dark} → ${color}`);
   }
-  assert.equal(artlabAccent(null), ARTLAB_AMBER.toLowerCase());
+  assert.equal(artlabAccent(null), ARTLAB_ORANGE.toLowerCase());
+  // the same colours as core's ARTLAB PDF (theme B): ground and orange
+  assert.equal(ARTLAB_GROUND, "#0A1222");
+  assert.equal(ARTLAB_ORANGE, "#FF8A1F");
+  // the card's CSS uses exactly the colours checked above
+  const css = readFileSync(new URL("../src/components/ticket/TicketCard.module.css", import.meta.url), "utf8");
+  for (const decl of ["--al-ground: #0a1222", "--al-ink: #eaf2ff", "--al-ink-2: #8fa3bf", "--al-blue: #3aa0ff"]) {
+    assert.ok(css.includes(decl), decl);
+  }
   assert.equal(contrast("#ffffff", "#000000"), 21);
 });
 
