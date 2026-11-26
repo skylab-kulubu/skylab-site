@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 
-// The door (/kapi), certificate (/sertifika) and ticket (/bilet) pages are drawn with skylcn-ui
+// The door (/kapi), certificate (/sertifika) and ticket (/bilet) pages and the error pages are drawn with skylcn-ui
 // (ADR 0055); the rest of the site is not. skylcn-ui's theme rewrites the tokens
 // and base styles the site's own globals.css sets, so it stays inside those routes.
 
@@ -15,6 +15,10 @@ const SCOPED = [
   "src/components/door",
   "src/components/ticket",
   "src/components/skylcn",
+  // The error pages: drawn with skylcn-ui through src/components/skylcn
+  "src/app/not-found.tsx",
+  "src/app/error.tsx",
+  "src/app/global-error.tsx",
 ];
 
 function filesUnder(dir) {
@@ -25,7 +29,7 @@ function filesUnder(dir) {
 }
 
 const sources = filesUnder("src").filter((path) => /\.(tsx?|jsx?|mjs|css)$/.test(path));
-const isScoped = (path) => SCOPED.some((dir) => path.startsWith(`${dir}/`));
+const isScoped = (path) => SCOPED.some((entry) => path === entry || path.startsWith(`${entry}/`));
 
 test("the site's global stylesheet does not load skylcn-ui", () => {
   const globals = readFileSync(join(root, "src/app/globals.css"), "utf8");
