@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { StatusPage } from "@skylab-kulubu/skylcn-ui";
+import { ErrorScene, StatusPage, pickErrorSceneVariant, statusSceneVariant } from "@skylab-kulubu/skylcn-ui";
 import { House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import CancelTicket from "@/components/ticket/CancelTicket";
@@ -25,6 +25,15 @@ const MESSAGES: Record<Exclude<TicketLookup["kind"], "found">, { title: string; 
   unavailable: { title: "Bilet şu an açılamıyor", description: "Biraz sonra yeniden deneyin." },
 };
 
+// The club's error scene above the page's own words: a random drawing of the kind on
+// each visit, picked here since the page renders per request. "Şu an açılamıyor" is a
+// 503, which always draws the same one.
+function scene(kind: Exclude<TicketLookup["kind"], "found">) {
+  if (kind === "unavailable") return <ErrorScene kind="unavailable" variant={statusSceneVariant("unavailable", 503)} />;
+  if (kind === "closed") return <ErrorScene kind="linkExpired" variant={pickErrorSceneVariant("linkExpired")} />;
+  return <ErrorScene kind="notFound" variant={pickErrorSceneVariant("notFound")} />;
+}
+
 // The key is never shown back: it is the ticket's secret.
 function EmptyState({ kind }: { kind: Exclude<TicketLookup["kind"], "found"> }) {
   const message = MESSAGES[kind];
@@ -32,6 +41,7 @@ function EmptyState({ kind }: { kind: Exclude<TicketLookup["kind"], "found"> }) 
     <StatusPage
       as="div"
       className="min-h-0 flex-1 bg-transparent px-5 pt-10 pb-12"
+      scene={scene(kind)}
       title={message.title}
       description={message.description}
     >
