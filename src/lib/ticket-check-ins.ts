@@ -126,12 +126,16 @@ export function lookupFromStatus(status: number, body: unknown): CheckInsLookup 
 // The small logo next to the organizer on the greeting: the club's own
 // files in public/img, for the teams and events that have one there (the
 // same files the site's pages use). Nothing else: an Event of another team
-// shows its name alone.
+// shows its name alone. An Event in the ARTLAB theme (core's theme.key)
+// shows ARTLAB's 2026 icon (artlab-site's src/app/icon.svg), whatever its name.
 export type OrganizerLogo = { src: string; alt: string };
+
+const THEME_LOGOS: Record<string, OrganizerLogo> = {
+  artlab: { src: "/img/events/artlab-2026.svg", alt: "ARTLAB" },
+};
 
 const EVENT_LOGOS: { match: RegExp; logo: OrganizerLogo }[] = [
   { match: /gece\s*kodu/i, logo: { src: "/img/teams/gecekodubeyaz.png", alt: "GECEKODU" } },
-  { match: /art\s*lab/i, logo: { src: "/img/events/artlab.png", alt: "ARTLAB" } },
   { match: /sky\s*days/i, logo: { src: "/img/events/skydays.png", alt: "SKYDAYS" } },
   { match: /y[ıi]ld[ıi]z\s*jam/i, logo: { src: "/img/events/yildizjam.png", alt: "YıldızJam" } },
 ];
@@ -141,7 +145,8 @@ const TEAM_LOGOS: Record<string, OrganizerLogo> = {
   GECEKODU: { src: "/img/teams/gecekodubeyaz.png", alt: "GECEKODU" },
 };
 
-export function organizerLogo(ownerTeam: string, eventName: string): OrganizerLogo | null {
+export function organizerLogo(ownerTeam: string, eventName: string, theme = ""): OrganizerLogo | null {
+  if (Object.hasOwn(THEME_LOGOS, theme)) return THEME_LOGOS[theme];
   const event = EVENT_LOGOS.find((e) => e.match.test(eventName));
   if (event) return event.logo;
   return TEAM_LOGOS[ownerTeam.trim().toUpperCase()] ?? null;

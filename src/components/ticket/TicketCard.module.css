@@ -278,6 +278,83 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * ARTLAB (core's theme.key "artlab"): the poster's look, the colours of core's
+ * ARTLAB ticket PDF (internal/ticket/theme/artlab.go): the dark blue ground,
+ * light ink, the orange accent (--ticket-color, lightened to 4.5:1 on the
+ * ground), electric blue links, Exo 2 for the titles and Manrope for the
+ * text. The QR stays black on white.
+ */
+.card[data-ticket-theme="artlab"] {
+  --al-ground: #0a1222;
+  --al-line: #2b3d5c;
+  --al-ink: #eaf2ff;
+  --al-ink-2: #8fa3bf;
+  --al-blue: #3aa0ff;
+  color: var(--al-ink);
+  font-family: var(--font-manrope-sans), system-ui, sans-serif;
+}
+
+.card[data-ticket-theme="artlab"] .face {
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, #ff8a1f, #3aa0ff) top / 100% 3px no-repeat,
+    radial-gradient(110% 55% at 100% 0%, rgb(58 160 255 / 16%), transparent 62%),
+    radial-gradient(90% 45% at 0% 100%, rgb(255 138 31 / 12%), transparent 60%),
+    var(--al-ground);
+  box-shadow: inset 0 0 0 1px var(--al-line);
+}
+
+.card[data-ticket-theme="artlab"] .frontTitle,
+.card[data-ticket-theme="artlab"] .backTitle {
+  font-family: var(--font-artlab-display), var(--font-manrope-sans), sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+
+.card[data-ticket-theme="artlab"] .frontTitle {
+  font-size: 28px;
+}
+
+.card[data-ticket-theme="artlab"] .backTitle {
+  font-size: 26px;
+}
+
+.card[data-ticket-theme="artlab"] .frontWhen,
+.card[data-ticket-theme="artlab"] .backWhen {
+  color: var(--ticket-color);
+}
+
+.card[data-ticket-theme="artlab"] .venue,
+.card[data-ticket-theme="artlab"] .code {
+  color: var(--al-ink-2);
+}
+
+/* Over the cover the accent's contrast is not the ground's: the date sits on
+ * the ground at 85%, so over the lightest picture it is still 4.5:1. */
+.card[data-ticket-theme="artlab"] .cover ~ .frontText .frontWhen {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-left: -8px;
+  border-radius: 4px;
+  background: rgb(10 18 34 / 85%);
+}
+
+.card[data-ticket-theme="artlab"] .qr {
+  box-shadow: 0 0 0 2px var(--ticket-color);
+}
+
+.card[data-ticket-theme="artlab"] .links a {
+  color: var(--al-blue);
+}
+
+.card[data-ticket-theme="artlab"] .turn:focus-visible,
+.card[data-ticket-theme="artlab"] .qr:focus-visible,
+.card[data-ticket-theme="artlab"] .links a:focus-visible {
+  outline-color: var(--al-blue);
+}
+
 /* Reduced motion: no float, no turn in space; the faces cross-fade. */
 @media (prefers-reduced-motion: reduce) {
   .float {
@@ -322,15 +399,37 @@
     display: none !important;
   }
 
+  /* Shown whichever face is in view: with reduced motion the face out of view is faded out. */
   .back {
     transform: none;
     background: #fff;
     min-height: 0;
     break-inside: avoid;
+    opacity: 1 !important;
   }
 
   .venue,
   .code {
     color: #000;
+  }
+
+  /* ARTLAB prints as Kurumsal does: black on white, no glow, no accent. */
+  .card[data-ticket-theme="artlab"] {
+    color: #000;
+  }
+
+  .card[data-ticket-theme="artlab"] .face {
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .card[data-ticket-theme="artlab"] .backWhen,
+  .card[data-ticket-theme="artlab"] .venue,
+  .card[data-ticket-theme="artlab"] .code {
+    color: #000;
+  }
+
+  .card[data-ticket-theme="artlab"] .qr {
+    box-shadow: none;
   }
 }
