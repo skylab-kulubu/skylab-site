@@ -179,7 +179,13 @@ export type OutcomeMessage = {
   detail: string;
 };
 
-export function messageFor(outcome: CheckInOutcome, retryAfter: number | null = null): OutcomeMessage {
+// `email` is the address the check-in was tried with; a "no ticket" answer
+// repeats it, so the guest sees what they typed.
+export function messageFor(
+  outcome: CheckInOutcome,
+  retryAfter: number | null = null,
+  email: string | null = null,
+): OutcomeMessage {
   switch (outcome) {
     case "checked-in":
       return {
@@ -199,12 +205,13 @@ export function messageFor(outcome: CheckInOutcome, retryAfter: number | null = 
         title: "E-posta adresini kontrol edin",
         detail: "Kayıt olurken kullandığınız e-posta adresini eksiksiz yazıp yeniden deneyin.",
       };
+    // Door staff can register a guest on the spot, so that is where this sends
+    // them; core's sign-up link in the answer is not shown at the door.
     case "no-ticket":
       return {
         tone: "error",
-        title: "Bu e-postayla kaydınız yok",
-        detail:
-          "Bu e-posta adresiyle bu etkinliğe kayıt bulunamadı. Kayıt olurken kullandığınız adresi deneyin ya da kapıdaki görevliye başvurun.",
+        title: "Bu e-postayla kayıt yok",
+        detail: `${email?.trim() || "Bu e-posta adresi"} ile bu etkinliğe kayıt bulunamadı. Kapıdaki görevliye adınızı söyleyin; kaydınızı orada yapsın.`,
       };
     case "session-closed":
       return {
