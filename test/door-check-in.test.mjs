@@ -218,3 +218,12 @@ test("a success or an informational answer is announced politely, the rest as al
     assert.equal(polite, messageFor(outcome).tone !== "error", outcome);
   }
 });
+
+test("no ticket for the address: it is repeated and the guest is sent to the door staff", () => {
+  const message = messageFor("no-ticket", null, " ayse@gmial.com ");
+  assert.equal(message.title, "Bu e-postayla kayıt yok");
+  assert.match(message.detail, /^ayse@gmial\.com ile bu etkinliğe kayıt bulunamadı\./);
+  assert.match(message.detail, /Kapıdaki görevliye adınızı söyleyin; kaydınızı orada yapsın\./);
+  assert.doesNotMatch(message.detail, /https?:|form/i);
+  assert.match(messageFor("no-ticket").detail, /^Bu e-posta adresi ile/);
+});
