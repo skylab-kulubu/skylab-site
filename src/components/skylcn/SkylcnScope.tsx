@@ -13,7 +13,8 @@ const mono = Space_Mono({
   weight: ["400", "700"],
 });
 
-// The frame of the pages drawn with skylcn-ui (ADR 0055): /kapi, /sertifika and /bilet.
+// The frame of the pages drawn with skylcn-ui (ADR 0055): /kapi, /sertifika, /bilet
+// and the error pages (not-found, error, global-error).
 // Their route layouts render it, so skylcn-scope.css and the Space fonts load with
 // those routes only. These pages carry no next/link: a stylesheet stays in the
 // document after a client-side navigation, so leaving them is a full page load and

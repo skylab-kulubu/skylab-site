@@ -1,9 +1,9 @@
 /*
  * skylcn-ui, the club's design system (ADR 0055), for the pages drawn with it:
- * the door check-in (/kapi), the certificate check (/sertifika) and the ticket
- * (/bilet). It is wired the way skylcn-ui's README says, but only SkylcnScope
- * imports it, so it loads with those routes and never with the rest of
- * yildizskylab.com. skylcn-ui's theme sets the same tokens as globals.css
+ * the door check-in (/kapi), the certificate check (/sertifika), the ticket
+ * (/bilet) and the error pages (not-found, error, global-error). It is wired
+ * the way skylcn-ui's README says, but only SkylcnScope imports it, so it
+ * loads with those routes and never with the rest of yildizskylab.com. skylcn-ui's theme sets the same tokens as globals.css
  * (--background, --border, --primary, --radius…) and its own base styles on
  * :root, so importing it in globals.css would change every page.
  *
@@ -19,11 +19,16 @@
 @import '@skylab-kulubu/skylcn-ui/sources/card.css';
 /* DescriptionList */
 @import '@skylab-kulubu/skylcn-ui/sources/display-extra.css';
+/* ErrorScene, ErrorScenePage (404, ticket and certificate pages) */
+@import '@skylab-kulubu/skylcn-ui/sources/error-scene.css';
 /* Field, Input */
 @import '@skylab-kulubu/skylcn-ui/sources/field.css';
 /* StatusPage */
 @import '@skylab-kulubu/skylcn-ui/sources/month-calendar.css';
 @import '@skylab-kulubu/skylcn-ui/sources/notice.css';
+/* OfflineScenePage, ServerErrorScenePage (error.tsx, global-error.tsx) */
+@import '@skylab-kulubu/skylcn-ui/sources/scene-offline.css';
+@import '@skylab-kulubu/skylcn-ui/sources/scene-server-error.css';
 @import '@skylab-kulubu/skylcn-ui/sources/skylab-mark.css';
 
 @source './';
