@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
-import { Badge, Card, DescriptionList, StatusPage, type DescriptionItem } from "@skylab-kulubu/skylcn-ui";
+import {
+  Badge,
+  Card,
+  DescriptionList,
+  ErrorScene,
+  StatusPage,
+  pickErrorSceneVariant,
+  statusSceneVariant,
+  type DescriptionItem,
+} from "@skylab-kulubu/skylcn-ui";
 import { BadgeCheck, BadgeX, Download, House } from "lucide-react";
 import LinkButton from "@/components/skylcn/LinkButton";
 import { attendanceLine, type CertificateAttendance } from "@/lib/certificate-attendance";
@@ -90,6 +99,15 @@ function EmptyState({
     <StatusPage
       as="div"
       className="min-h-0 flex-1 bg-transparent px-5 pt-10 pb-12"
+      // The club's error scene above the page's own words: a random 404 drawing on each
+      // visit; "kullanılamıyor" is a 503, which always draws the same one.
+      scene={
+        unavailable ? (
+          <ErrorScene kind="unavailable" variant={statusSceneVariant("unavailable", 503)} />
+        ) : (
+          <ErrorScene kind="notFound" variant={pickErrorSceneVariant("notFound")} />
+        )
+      }
       title={unavailable ? "Doğrulama şu anda kullanılamıyor" : "Sertifika bulunamadı"}
       description={
         unavailable
